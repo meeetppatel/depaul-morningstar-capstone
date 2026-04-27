@@ -1,0 +1,48 @@
+
+RECOMMENDATIONS BY TASK
+=======================
+
+TASK 1 — Industry Classification (145 classes)
+----------------------------------------------
+[1] BASELINE: TF-IDF (1-3 grams, max 50k features) + LogisticRegression(class_weight='balanced')
+    Expected macro-F1: 0.55-0.70 floor
+
+[2] FEATURE EXPERIMENT: A/B test combined_text vs SegmentName-only vs LongProfile-only
+    Goal: quantify how much signal the 51% imputed SegmentDescription is contributing
+
+[3] AGGREGATION EXPERIMENT: Segment-level training vs Company-date-level training
+    Goal: determine the right training unit before scaling to transformer models
+
+[4] TRANSFORMER: bge-small-en or all-MiniLM-L6-v2 → mean pool → LogReg head
+    Expected macro-F1: 0.70-0.82
+
+[5] SPLIT: GroupShuffleSplit by CompanyId + stratify by sector_name (the label is hierarchical
+    so leakage by company is real). Hold out 2024 separately as time-based test.
+
+TASK 2 — SubIndustry Classification (450 spec / 428 observed / 407 trainable)
+-----------------------------------------------------------------------------
+[1] DROP <2-sample classes for the modeling label space. Document the 21 dropped + 22 absent.
+
+[2] BASELINE: Same TF-IDF + LogReg. Expect macro-F1 in the 0.40-0.55 range — the 1991x
+    imbalance and short text make this hard.
+
+[3] HIERARCHICAL FALLBACK (the headline strategy):
+    - Train SubIndustry classifier
+    - At inference: if max(p) < 0.5, output parent_industry_code (8 digits) instead
+    - Report TWO macro-F1 numbers: SubIndustry macro-F1 + Industry-fallback macro-F1
+    - This is how we expect to hit >= 0.75 success criterion
+
+[4] CLASS WEIGHTS: 'balanced' alone is insufficient at 1991x. Try sklearn's
+    compute_sample_weight + threshold tuning per class.
+
+[5] SPLIT: GroupShuffleSplit by CompanyId + stratify by parent_industry_code (NOT
+    SubIndustry — too sparse for stratification).
+
+CROSS-TASK
+----------
+- Single source of truth for splits in src/data/splits.py — all notebooks import from it
+- Track every experiment in results/experiments.csv:
+  task, model, features, split_strategy, macro_f1, top10_f1, train_time_s,
+  inference_ms_per_row, est_cost_per_1k
+- The cost column is in the spec ("comparing prediction quality, system performance,
+  and cost for real-world deployment") — track from day 1, not retrofit at the end
