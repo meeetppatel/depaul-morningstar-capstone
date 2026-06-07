@@ -5,3 +5,10 @@ data/
 __pycache__/
 .DS_Store
 *.ipynb_checkpoints
+
+# API artifacts — model weights
+api/artifacts/*.pt
+api/artifacts/*.pkl
+api/artifacts/*.npy
+api/artifacts/gecs_definitions.json
+.env

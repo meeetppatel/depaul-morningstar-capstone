@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GECS Intelligence Platform</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111116;--s2:#18181f;--s3:#1e1e28;--s4:#25253a;
+  --ac:#00c9a7;--ac2:#5b8af5;--ac3:#a78bfa;
+  --tx:#dde4f0;--mu:#6b7794;--bd:#1f2035;
+  --g:#22c55e;--am:#f59e0b;--rd:#f04960;
+  --f:'Inter',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;
+  --r:10px;--r2:8px;--r3:6px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--f);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* NAV */
+nav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;background:rgba(10,10,12,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--ac)}
+.logo span{color:var(--ac)}
+.nav-links{display:flex;gap:18px}
+.nav-links a{font-size:13px;color:var(--mu);transition:color .15s;text-decoration:none}
+.nav-links a:hover{color:var(--tx)}
+.nav-r{display:flex;gap:8px;align-items:center}
+.pill{font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(0,201,167,.1);color:var(--ac);border:1px solid rgba(0,201,167,.2)}
+.nb{font-size:12px;padding:4px 12px;border-radius:var(--r3);background:transparent;border:1px solid var(--bd);color:var(--mu);cursor:pointer;font-family:var(--f);transition:all .15s}
+.nb:hover{border-color:var(--ac);color:var(--ac)}
+
+/* HERO */
+.hero{padding:3rem 2rem 2rem;text-align:center;max-width:680px;margin:0 auto}
+.hero h1{font-size:32px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:.75rem}
+.grad{background:linear-gradient(130deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--mu);font-size:14px;max-width:480px;margin:0 auto 1.5rem}
+
+/* STATS */
+.stats{display:flex;justify-content:center;max-width:600px;margin:0 auto 2.5rem;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.stat{flex:1;padding:13px;text-align:center;border-right:1px solid var(--bd)}
+.stat:last-child{border-right:none}
+.stat-val{font-size:20px;font-weight:700;color:var(--ac);font-family:var(--fm);letter-spacing:-.5px}
+.stat-lbl{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+
+/* HEALTH */
+#health-strip{display:none;max-width:1100px;margin:0 auto 1.25rem;padding:0 2rem}
+.health-inner{display:flex;gap:20px;align-items:center;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r2);padding:9px 14px;font-size:12px;flex-wrap:wrap}
+.hdot{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;margin-right:4px}
+.hmu{color:var(--mu)}.hval{color:var(--tx);font-weight:500;margin-left:3px}
+
+/* MAIN — full width stacked */
+.wrap{max-width:1100px;margin:0 auto;padding:0 2rem 3rem}
+
+/* INPUT CARD */
+.input-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--s3);color:var(--mu);font-family:var(--fm)}
+.input-grid{display:grid;grid-template-columns:1fr 2fr 100px;gap:12px;margin-bottom:1.25rem}
+lbl{font-size:11px;color:var(--mu);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+input,textarea,select{width:100%;font-size:13px;background:var(--s2);color:var(--tx);border:1px solid var(--bd);border-radius:var(--r2);padding:8px 10px;outline:none;font-family:var(--f);transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--ac)}
+textarea{resize:vertical;line-height:1.5}
+
+/* SEGMENTS */
+.segs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.segs-label{font-size:13px;font-weight:500}
+.segs-meta{font-size:12px;color:var(--mu)}
+.seg-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-bottom:10px}
+.seg-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:12px;transition:border-color .15s}
+.seg-card:hover{border-color:var(--s4)}
+.seg-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.seg-num{font-size:11px;font-weight:600;color:var(--ac);font-family:var(--fm)}
+.seg-del{border:none;background:none;color:var(--mu);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;transition:color .15s}
+.seg-del:hover{color:var(--rd)}
+.seg-row{display:grid;grid-template-columns:1fr 80px;gap:8px;margin-top:6px}
+.word-count{font-size:10px;margin-top:3px}
+.wc-ok{color:var(--g)}.wc-warn{color:var(--am)}.wc-err{color:var(--rd)}
+.btn-add{width:100%;padding:9px;background:transparent;border:1px dashed var(--bd);border-radius:var(--r2);color:var(--mu);font-size:13px;cursor:pointer;font-family:var(--f);transition:all .15s}
+.btn-add:hover{border-color:var(--ac);color:var(--ac)}
+
+/* REV WARNING */
+.rev-warning{font-size:12px;color:var(--am);margin-top:6px;display:none}
+
+/* ACTION ROW */
+.action-row{display:flex;gap:10px;margin-top:1rem;align-items:center}
+.btn-primary{flex:1;padding:10px;background:var(--ac);color:#0a0a0c;border:none;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--f);transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-sec{padding:10px 16px;background:transparent;border:1px solid var(--bd);border-radius:var(--r2);color:var(--mu);font-size:13px;cursor:pointer;font-family:var(--f);transition:all .15s;white-space:nowrap}
+.btn-sec:hover{border-color:var(--mu);color:var(--tx)}
+.err-box{font-size:12px;color:var(--rd);margin-top:8px;padding:8px 12px;background:rgba(240,73,96,.08);border-radius:var(--r2);border:1px solid rgba(240,73,96,.2);display:none}
+
+/* RESULTS */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.results-meta{font-size:12px;color:var(--mu)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:14px}
+.result-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:1.25rem;transition:border-color .2s}
+.result-card:hover{border-color:var(--s4)}
+.rc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;gap:8px}
+.rc-name{font-size:15px;font-weight:600;line-height:1.3}
+.rc-lat{font-size:11px;color:var(--mu);font-family:var(--fm);margin-top:2px}
+.route-badge{font-size:11px;padding:3px 10px;border-radius:var(--r3);font-weight:600;white-space:nowrap;flex-shrink:0}
+.r-auto{background:rgba(34,197,94,.1);color:var(--g);border:1px solid rgba(34,197,94,.2)}
+.r-claude{background:rgba(167,139,250,.1);color:var(--ac3);border:1px solid rgba(167,139,250,.2)}
+.r-review{background:rgba(240,73,96,.1);color:var(--rd);border:1px solid rgba(240,73,96,.2)}
+.r-subrev{background:rgba(245,158,11,.1);color:var(--am);border:1px solid rgba(245,158,11,.2)}
+
+/* CLASSIFICATION DISPLAY */
+.classif{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.cls-box{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:10px 12px}
+.cls-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.cls-code{font-family:var(--fm);font-size:16px;font-weight:700;color:var(--ac);letter-spacing:-.5px}
+.cls-code.sub{color:var(--ac2)}
+.cls-name{font-size:11px;color:var(--mu);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cls-conf{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cls-track{flex:1;height:4px;border-radius:2px;background:var(--s3)}
+.cls-fill{height:100%;border-radius:2px;transition:width .6s}
+.cls-pct{font-size:11px;font-family:var(--fm);min-width:34px;text-align:right}
+
+/* TOP 5 */
+.top5-section{margin-bottom:.75rem}
+.top5-label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.top5-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.top5-code{font-size:11px;font-family:var(--fm);color:var(--mu);min-width:72px}
+.top5-name{font-size:11px;color:var(--mu);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top5-track{width:80px;height:3px;border-radius:2px;background:var(--s3);flex-shrink:0}
+.top5-fill{height:100%;border-radius:2px}
+.top5-pct{font-size:11px;font-family:var(--fm);min-width:34px;text-align:right}
+
+/* CLAUDE IN RESULT */
+.claude-section{border-top:1px solid var(--bd);margin-top:.75rem;padding-top:.75rem}
+.claude-row{display:flex;align-items:center;gap:8px}
+.claude-btn{padding:5px 12px;background:transparent;border:1px solid var(--bd);border-radius:var(--r3);color:var(--mu);font-size:11px;cursor:pointer;font-family:var(--f);transition:all .15s}
+.claude-btn:hover{border-color:var(--ac3);color:var(--ac3)}
+.claude-badge{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(167,139,250,.1);color:var(--ac3);border:1px solid rgba(167,139,250,.2)}
+.claude-body{margin-top:8px;font-size:12px;color:var(--mu);background:var(--s2);border-radius:var(--r2);padding:10px 12px;line-height:1.7;display:none}
+
+/* BATCH */
+.section{margin-bottom:2.5rem}
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.sec-title{font-size:17px;font-weight:600}
+.batch-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:1.5rem}
+.batch-hint{font-size:12px;color:var(--mu);margin-bottom:10px}
+textarea.batch-ta{min-height:130px;font-family:var(--fm);font-size:12px;line-height:1.6}
+.batch-actions{display:flex;gap:10px;margin-top:10px;align-items:center}
+.btn-batch{padding:9px 20px;background:var(--ac2);color:#fff;border:none;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f)}
+.btn-export{padding:9px 16px;background:transparent;border:1px solid var(--bd);border-radius:var(--r2);color:var(--mu);font-size:12px;cursor:pointer;font-family:var(--f)}
+.btn-export:hover{border-color:var(--mu);color:var(--tx)}
+.batch-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.batch-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd);color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.batch-table td{padding:9px 10px;border-bottom:1px solid var(--bd);vertical-align:top}
+.batch-table tr:last-child td{border-bottom:none}
+.batch-table tr:hover td{background:var(--s2)}
+.bt-code{font-family:var(--fm);font-size:11px}
+.bt-name{font-size:11px;color:var(--mu);display:block;margin-top:1px}
+.bt-claude{padding:4px 9px;background:transparent;border:1px solid var(--bd);border-radius:4px;color:var(--mu);font-size:10px;cursor:pointer;font-family:var(--f);transition:all .15s}
+.bt-claude:hover{border-color:var(--ac3);color:var(--ac3)}
+.bt-explain{font-size:11px;color:var(--mu);margin-top:6px;background:var(--s2);border-radius:4px;padding:6px 8px;display:none;line-height:1.6}
+.batch-summary{font-size:11px;color:var(--mu);margin-top:8px}
+
+/* API REFERENCE */
+.api-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:1.5rem}
+.ep{margin-bottom:1.25rem}
+.ep-line{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.method{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,201,167,.12);color:var(--ac);font-family:var(--fm)}
+.ep-path{font-family:var(--fm);font-size:13px}
+.ep-desc{font-size:12px;color:var(--mu);margin-bottom:6px}
+.code-block{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r2);padding:12px 14px;font-family:var(--fm);font-size:12px;color:#a8b8d8;overflow-x:auto;position:relative;white-space:pre}
+.copy-btn{position:absolute;top:8px;right:8px;padding:3px 8px;background:var(--s3);border:1px solid var(--bd);border-radius:4px;font-size:11px;color:var(--mu);cursor:pointer;font-family:var(--f)}
+.copy-btn:hover{color:var(--tx)}
+.routing-info{font-size:12px;color:var(--mu);margin-top:1rem;line-height:1.8}
+
+/* HISTORY */
+.history-section{margin-bottom:1.5rem}
+.history-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hist-item{padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r3);font-size:12px;color:var(--mu);cursor:pointer;transition:all .15s}
+.hist-item:hover{border-color:var(--ac);color:var(--ac)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:1.75rem;width:400px;max-width:90vw}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+.modal-btns{display:flex;gap:8px;margin-top:1.25rem}
+.btn-save{flex:1;padding:9px;background:var(--ac);color:#0a0a0c;border:none;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:9px 14px;background:transparent;border:1px solid var(--bd);border-radius:var(--r2);color:var(--mu);font-size:13px;cursor:pointer;font-family:var(--f)}
+
+/* UTILS */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+.empty{padding:3rem;text-align:center;color:var(--mu);font-size:13px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r)}
+footer{text-align:center;padding:2rem;color:var(--mu);font-size:12px;border-top:1px solid var(--bd)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3>API Settings</h3>
+    <div style="margin-top:12px">
+      <lbl>API Base URL</lbl>
+      <input id="cfg-url" value="http://localhost:8000"/>
+    </div>
+    <p style="font-size:11px;color:var(--mu);margin-top:8px">Anthropic key is set server-side via .env — Claude is enabled automatically.</p>
+    <div class="modal-btns">
+      <button class="btn-save" onclick="saveSettings()">Save</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><div class="logo-dot"></div>GECS <span>Intelligence</span></div>
+  <div class="nav-links">
+    <a href="#classifier">Classifier</a>
+    <a href="#batch">Batch</a>
+    <a href="#api">API</a>
+    <a href="/docs" target="_blank">Swagger ↗</a>
+  </div>
+  <div class="nav-r">
+    <span class="pill">● Live</span>
+    <button class="nb" onclick="openModal()">Settings</button>
+    <button class="nb" onclick="checkHealth()">Health</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>GECS <span class="grad">Industry Classification</span></h1>
+  <p>Classify SEC 10-K segments into 145 industries and 428 sub-industries · FLANG-BERT + Claude AI</p>
+</div>
+<div class="stats">
+  <div class="stat"><div class="stat-val">0.8325</div><div class="stat-lbl">T1 Macro F1</div></div>
+  <div class="stat"><div class="stat-val">0.9311</div><div class="stat-lbl">Top-10 F1</div></div>
+  <div class="stat"><div class="stat-val">145</div><div class="stat-lbl">Industries</div></div>
+  <div class="stat"><div class="stat-val">428</div><div class="stat-lbl">Sub-industries</div></div>
+  <div class="stat"><div class="stat-val">3-tier</div><div class="stat-lbl">Routing</div></div>
+</div>
+
+<div id="health-strip">
+  <div class="health-inner">
+    <span><span class="hdot"></span><span class="hval" id="h-st">ready</span></span>
+    <span class="hmu">T1 <span class="hval" id="h-t1">—</span></span>
+    <span class="hmu">T2 <span class="hval" id="h-t2">—</span></span>
+    <span class="hmu">Claude <span class="hval" id="h-cl">—</span></span>
+    <span class="hmu">Device <span class="hval" id="h-dv">—</span></span>
+    <span class="hmu">Names <span class="hval" id="h-nm">—</span></span>
+    <span class="hmu">Thresholds <span class="hval" id="h-th">—</span></span>
+  </div>
+</div>
+
+<div class="wrap" id="classifier">
+
+  <!-- INPUT CARD -->
+  <div class="input-card">
+    <div class="card-header">
+      <div class="card-title">Company Input <span class="tag">POST /predict/full</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="nb" onclick="clearAll()" style="font-size:11px">Clear</button>
+        <button class="nb" onclick="loadSample()" style="font-size:11px">Load sample</button>
+      </div>
+    </div>
+
+    <div class="input-grid">
+      <div>
+        <lbl>Company ID</lbl>
+        <input id="cid" value="TEST001" placeholder="e.g. AAPL123"/>
+      </div>
+      <div>
+        <lbl>Long Profile</lbl>
+        <input id="lp" placeholder="Brief company description..." value="American packaged-food manufacturer producing frozen vegetables, meals and spices."/>
+      </div>
+      <div>
+        <lbl>Year</lbl>
+        <input id="yr" value="2024"/>
+      </div>
+    </div>
+
+    <div class="segs-header">
+      <span class="segs-label">Segments</span>
+      <span class="segs-meta" id="seg-meta">0 segments · rev sum: 0.00</span>
+    </div>
+    <div class="seg-list" id="seg-list"></div>
+    <div class="rev-warning" id="rev-warn">⚠ Revenue shares sum to <span id="rev-sum-val">0.00</span> — should be ~1.00</div>
+    <button class="btn-add" onclick="addSeg()">+ Add segment</button>
+
+    <div class="action-row">
+      <button class="btn-primary" id="pred-btn" onclick="predict()">
+        <span id="pred-icon">→</span> Classify all segments
+      </button>
+      <button class="btn-sec" onclick="checkHealth()">Health check</button>
+    </div>
+    <div class="err-box" id="err-box"></div>
+  </div>
+
+  <!-- PREDICTION HISTORY -->
+  <div class="history-section" id="hist-section" style="display:none">
+    <div style="font-size:12px;color:var(--mu);margin-bottom:6px">Recent predictions</div>
+    <div class="history-list" id="hist-list"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-wrap">
+    <div class="empty">← Enter company details and segments, then click Classify</div>
+  </div>
+
+</div>
+
+<!-- BATCH -->
+<div class="wrap section" id="batch">
+  <div class="sec-header">
+    <span class="sec-title">Batch Analyzer</span>
+    <span class="tag">multiple segments at once</span>
+  </div>
+  <div class="batch-card">
+    <div class="batch-hint">Paste a JSON array of segments. Each needs name and description. Low-confidence rows get a Claude explain button.</div>
+    <textarea class="batch-ta" id="batch-ta">[
+  {"name": "Fashion Retail", "description": "Sells clothing, designer brands, shoes through department stores and digital. Includes Macy's, Bloomingdale's and Bluemercury brands.", "revenue_share": 1.0},
+  {"name": "Medical Devices", "description": "Designs and manufactures surgical instruments, orthopedic implants, and diagnostic imaging equipment sold to hospitals worldwide.", "revenue_share": 1.0},
+  {"name": "Upstream Exploration", "description": "Engages in exploration, drilling, and extraction of crude oil and natural gas from onshore and offshore reserves in Gulf of Mexico and North Sea.", "revenue_share": 1.0},
+  {"name": "Cloud Infrastructure", "description": "Provides on-demand computing, storage, and networking services through global data centers including managed Kubernetes and serverless offerings.", "revenue_share": 1.0},
+  {"name": "Packaged Foods", "description": "Manufactures shelf-stable snack foods, cereals, and condiments under proprietary brand names through grocery retailers and e-commerce channels.", "revenue_share": 1.0},
+  {"name": "Retail Banking", "description": "Offers personal checking, savings, mortgage loans, auto loans, and credit cards through branch network and mobile banking application.", "revenue_share": 1.0}
+]</textarea>
+    <div class="batch-actions">
+      <button class="btn-batch" onclick="runBatch()">Run Batch →</button>
+      <button class="btn-export" onclick="exportCSV()" id="export-btn" style="display:none">Export CSV ↓</button>
+      <span id="batch-status" style="font-size:12px;color:var(--mu)"></span>
+    </div>
+    <div id="batch-out"></div>
+  </div>
+</div>
+
+<!-- API REFERENCE -->
+<div class="wrap section" id="api">
+  <div class="sec-header">
+    <span class="sec-title">API Reference</span>
+    <span class="tag">FastAPI v3</span>
+  </div>
+  <div class="api-card">
+    <div class="ep">
+      <div class="ep-line"><span class="method">GET</span><span class="ep-path">/health</span></div>
+      <div class="ep-desc">Model status, name coverage, confidence thresholds</div>
+    </div>
+    <div class="ep">
+      <div class="ep-line"><span class="method">GET</span><span class="ep-path">/lookup/{code}</span></div>
+      <div class="ep-desc">Get name + definition for any GECS code</div>
+    </div>
+    <div class="ep">
+      <div class="ep-line"><span class="method">GET</span><span class="ep-path">/hierarchy</span></div>
+      <div class="ep-desc">Full sector → group → industry tree with names</div>
+    </div>
+    <div class="ep">
+      <div class="ep-line"><span class="method">POST</span><span class="ep-path">/predict/full</span></div>
+      <div class="ep-desc">Full pipeline — Industry + correlated SubIndustry + Claude fallback. Single or batch.</div>
+      <div class="code-block"><button class="copy-btn" onclick="cpCode(this)">copy</button>import requests
+
+r = requests.post("http://localhost:8000/predict/full", json={
+    "company_id": "AAPL",
+    "long_profile": "Technology company producing consumer electronics.",
+    "segments": [{
+        "name": "iPhone",
+        "description": "Designs, markets and sells smartphones based on iOS.",
+        "revenue_share": 0.52,
+        "is_largest": True
+    }]
+})
+p = r.json()["predictions"][0]
+print(f"{p['industry_code']} · {p['industry_name']}")
+print(f"{p['subindustry_code']} · route={p['route']} conf={p['industry_confidence']:.0%}")</div>
+    </div>
+    <div class="routing-info">
+      Routing: conf ≥ 0.70 → <span style="color:var(--g)">model_auto</span>
+      &nbsp;·&nbsp; 0.10–0.70 → <span style="color:var(--ac3)">claude_fallback</span>
+      &nbsp;·&nbsp; &lt; 0.10 → <span style="color:var(--rd)">human_review</span><br>
+      SubIndustry: first 8 digits always match Industry code (correlated)
+    </div>
+  </div>
+</div>
+
+<footer>GECS Intelligence Platform · DePaul × Morningstar Capstone Spring 2026 · T1 F1: 0.8325 · T2 F1: 0.5721 · <a href="/docs">Swagger</a></footer>
+
+<script>
+let API = 'http://localhost:8000';
+let segIdCounter = 0;
+let lastBatchData = null;
+let predHistory = [];
+
+const SAMPLES = [
+  {name:'Frozen and Vegetables', desc:'Frozen and vegetables segment includes the Green Giant and Le Sueur brands. Produces and sells frozen and canned vegetables in North America through grocery retailers.', rev:0.21, largest:false},
+  {name:'Meals', desc:'Meals segment includes Ortega, Maple Grove Farms and Cream of Wheat brands serving US and Canada grocery retail and e-commerce channels.', rev:0.24, largest:true},
+  {name:'Spices and Flavor Solutions', desc:'Spices segment includes Dash, Spice Islands and Weber brands sold through grocery, mass market and specialty food retailers.', rev:0.21, largest:false},
+];
+
+// ── Modal ──────────────────────────────────────────────────
+function openModal(){document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function saveSettings(){API=document.getElementById('cfg-url').value.replace(/\/$/,'');closeModal();checkHealth();}
+
+// ── Health ─────────────────────────────────────────────────
+async function checkHealth(){
+  try{
+    const d=await(await fetch(`${API}/health`)).json();
+    const s=document.getElementById('health-strip');
+    s.style.display='block';
+    document.getElementById('h-st').textContent=d.status;
+    document.getElementById('h-t1').textContent=d.task1_classes+' cls';
+    document.getElementById('h-t2').textContent=d.task2_available?d.task2_classes+' cls':'off';
+    document.getElementById('h-cl').textContent=d.claude_enabled?'on':'off';
+    document.getElementById('h-dv').textContent=d.device;
+    document.getElementById('h-nm').textContent=(d.industry_names_loaded||0)+' loaded';
+    const t=d.t1_conf_thresholds||{};
+    document.getElementById('h-th').textContent=`high=${t.high} mid=${t.medium}`;
+  }catch(e){showErr('Health check failed — is server running at '+API+'?');}
+}
+
+// ── Segments ───────────────────────────────────────────────
+function addSeg(data={}){
+  segIdCounter++;
+  const id=segIdCounter;
+  const div=document.createElement('div');
+  div.className='seg-card';
+  div.dataset.id=id;
+  div.innerHTML=`
+    <div class="seg-card-header">
+      <span class="seg-num">SEG ${id}</span>
+      <button class="seg-del" onclick="delSeg(${id})" title="Remove segment">✕</button>
+    </div>
+    <div>
+      <lbl>Name</lbl>
+      <input class="sn" value="${esc(data.name||'')}" placeholder="e.g. Cloud Services" oninput="updateSegMeta()"/>
+    </div>
+    <div style="margin-top:6px">
+      <lbl>Description</lbl>
+      <textarea class="sd" style="min-height:64px" oninput="updateWordCount(this,${id})">${esc(data.desc||'')}</textarea>
+      <div class="word-count" id="wc-${id}"></div>
+    </div>
+    <div class="seg-row">
+      <div>
+        <lbl>Revenue share (0–1)</lbl>
+        <input type="number" class="sr" value="${data.rev||0}" min="0" max="1" step="0.01" oninput="updateSegMeta()"/>
+      </div>
+      <div>
+        <lbl>Largest?</lbl>
+        <select class="sl">
+          <option value="false" ${!data.largest?'selected':''}>No</option>
+          <option value="true" ${data.largest?'selected':''}>Yes</option>
+        </select>
+      </div>
+    </div>`;
+  document.getElementById('seg-list').appendChild(div);
+  updateSegMeta();
+  updateWordCount(div.querySelector('.sd'), id);
+}
+
+function delSeg(id){
+  const card=document.querySelector(`.seg-card[data-id="${id}"]`);
+  if(card){card.remove();renumberSegs();updateSegMeta();}
+}
+
+function renumberSegs(){
+  document.querySelectorAll('.seg-card').forEach((c,i)=>{
+    const num=c.querySelector('.seg-num');
+    if(num) num.textContent='SEG '+(i+1);
+  });
+}
+
+function updateSegMeta(){
+  const cards=document.querySelectorAll('.seg-card');
+  const revs=Array.from(cards).map(c=>parseFloat(c.querySelector('.sr')?.value||0)||0);
+  const sum=revs.reduce((a,b)=>a+b,0);
+  document.getElementById('seg-meta').textContent=`${cards.length} segment${cards.length!==1?'s':''} · rev sum: ${sum.toFixed(2)}`;
+  const warn=document.getElementById('rev-warn');
+  document.getElementById('rev-sum-val').textContent=sum.toFixed(2);
+  warn.style.display=(cards.length>1&&Math.abs(sum-1)>0.05)?'block':'none';
+}
+
+function updateWordCount(ta,id){
+  const words=ta.value.trim().split(/\s+/).filter(Boolean).length;
+  const el=document.getElementById('wc-'+id);
+  if(!el)return;
+  let cls='wc-ok',msg=words+' words';
+  if(words<10){cls='wc-err';msg=words+' words — too short, add more detail';}
+  else if(words<20){cls='wc-warn';msg=words+' words — more detail improves accuracy';}
+  el.className='word-count '+cls;
+  el.textContent=msg;
+}
+
+function getSegs(){
+  return Array.from(document.querySelectorAll('.seg-card')).map(c=>({
+    name:c.querySelector('.sn').value.trim(),
+    description:c.querySelector('.sd').value.trim(),
+    revenue_share:parseFloat(c.querySelector('.sr').value)||0,
+    is_largest:c.querySelector('.sl').value==='true',
+  })).filter(s=>s.name);
+}
+
+function loadSample(){
+  document.getElementById('seg-list').innerHTML='';
+  segIdCounter=0;
+  SAMPLES.forEach(s=>addSeg(s));
+  document.getElementById('cid').value='SAMPLE001';
+  document.getElementById('lp').value='American packaged-food manufacturer producing frozen vegetables, meals and spices sold through grocery retailers.';
+}
+
+function clearAll(){
+  document.getElementById('seg-list').innerHTML='';
+  segIdCounter=0;
+  document.getElementById('cid').value='';
+  document.getElementById('lp').value='';
+  document.getElementById('results-wrap').innerHTML='<div class="empty">← Enter company details and segments, then click Classify</div>';
+  updateSegMeta();
+}
+
+// ── Predict ────────────────────────────────────────────────
+async function predict(){
+  const segs=getSegs();
+  if(!segs.length){showErr('Add at least one segment.');return;}
+  const btn=document.getElementById('pred-btn');
+  document.getElementById('pred-icon').innerHTML='<span class="spin"></span>';
+  btn.disabled=true;
+  document.getElementById('err-box').style.display='none';
+  document.getElementById('results-wrap').innerHTML='<div class="empty"><span class="spin"></span> Classifying '+segs.length+' segment'+(segs.length!==1?'s':'')+'...</div>';
+
+  const payload={
+    company_id:document.getElementById('cid').value||'TEST',
+    long_profile:document.getElementById('lp').value,
+    as_of_date:document.getElementById('yr').value,
+    segments:segs,
+  };
+
+  try{
+    const r=await fetch(`${API}/predict/full`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    renderResults(d, segs);
+    saveHistory(payload.company_id, d);
+  }catch(e){
+    showErr('Request failed: '+e.message+'. Is server running at '+API+'?');
+    document.getElementById('results-wrap').innerHTML='<div class="empty">Error — check connection</div>';
+  }
+  document.getElementById('pred-icon').textContent='→';
+  btn.disabled=false;
+}
+
+// ── Render results ─────────────────────────────────────────
+function renderResults(data, segs){
+  const preds=data.predictions||[];
+  let html=`<div class="results-header">
+    <span class="results-meta"><b style="color:var(--tx)">${data.company_id}</b> · ${preds.length} segment${preds.length!==1?'s':''} · ${Math.round(data.total_latency_ms||0)}ms</span>
+  </div><div class="results-grid">`;
+
+  preds.forEach((p,i)=>{
+    const t1c=(p.industry_confidence*100);
+    const t2c=(p.subindustry_confidence*100);
+    const t1col=t1c>=70?'var(--g)':t1c>=10?'var(--am)':'var(--rd)';
+    const t2col=t2c>=50?'var(--g)':t2c>=30?'var(--am)':'var(--rd)';
+    const subOk=p.subindustry_code&&p.subindustry_code!=='unavailable';
+
+    const top3T1=(p.industry_top5||[]).slice(0,3).map(x=>{
+      const pc=(x.probability*100);
+      const c=pc>=70?'var(--g)':pc>=25?'var(--am)':'var(--rd)';
+      return `<div class="top5-row">
+        <span class="top5-code">${x.code}</span>
+        <span class="top5-name">${esc(x.name||'')}</span>
+        <div class="top5-track"><div class="top5-fill" style="width:${pc}%;background:${c}"></div></div>
+        <span class="top5-pct" style="color:${c}">${pc.toFixed(1)}%</span>
+      </div>`;
+    }).join('');
+
+    const top3T2=subOk?(p.subindustry_top5||[]).slice(0,3).map(x=>{
+      const pc=(x.probability*100);
+      const c=pc>=50?'var(--g)':pc>=30?'var(--am)':'var(--rd)';
+      return `<div class="top5-row">
+        <span class="top5-code">${x.code}</span>
+        <span class="top5-name">${esc(x.name||'')}</span>
+        <div class="top5-track"><div class="top5-fill" style="width:${pc}%;background:${c}"></div></div>
+        <span class="top5-pct" style="color:${c}">${pc.toFixed(1)}%</span>
+      </div>`;
+    }).join(''):'';
+
+    const segText=(segs[i]?.name||'')+': '+(segs[i]?.description||'');
+
+    html+=`<div class="result-card">
+      <div class="rc-header">
+        <div>
+          <div class="rc-name">${esc(p.segment_name)}</div>
+          <div class="rc-lat">${p.latency_ms}ms</div>
+        </div>
+        ${routeBadge(p.route)}
+      </div>
+
+      <!-- INDUSTRY + SUBINDUSTRY BOXES -->
+      <div class="classif">
+        <div class="cls-box">
+          <div class="cls-label">Industry</div>
+          <div class="cls-code">${p.industry_code}</div>
+          <div class="cls-name" title="${esc(p.industry_name)}">${esc(p.industry_name||'—')}</div>
+          <div class="cls-conf">
+            <div class="cls-track"><div class="cls-fill" style="width:${t1c}%;background:${t1col}"></div></div>
+            <span class="cls-pct" style="color:${t1col}">${t1c.toFixed(1)}%</span>
+          </div>
+        </div>
+        ${subOk?`<div class="cls-box">
+          <div class="cls-label">Sub-industry</div>
+          <div class="cls-code sub">${p.subindustry_code}</div>
+          <div class="cls-name" title="${esc(p.subindustry_name)}">${esc(p.subindustry_name||'—')}</div>
+          <div class="cls-conf">
+            <div class="cls-track"><div class="cls-fill" style="width:${t2c}%;background:${t2col}"></div></div>
+            <span class="cls-pct" style="color:${t2col}">${t2c.toFixed(1)}%</span>
+          </div>
+        </div>`:'<div class="cls-box" style="display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:12px">Sub-industry<br>unavailable</div>'}
+      </div>
+
+      <!-- TOP 5 -->
+      <div class="top5-section">
+        <div class="top5-label">Industry top-3</div>
+        ${top3T1}
+      </div>
+      ${subOk?`<div class="top5-section">
+        <div class="top5-label">Sub-industry top-3</div>
+        ${top3T2}
+      </div>`:''}
+
+      <!-- CLAUDE -->
+      <div class="claude-section">
+        <div class="claude-row">
+          ${p.route==='claude_fallback'?`<span class="claude-badge">Claude resolved</span>`:''}
+          <button class="claude-btn" onclick="askClaude(${i},'${esc(segText)}')">Explain classification →</button>
+        </div>
+        <div class="claude-body" id="cl-${i}"></div>
+      </div>
+    </div>`;
+  });
+
+  html+='</div>';
+  document.getElementById('results-wrap').innerHTML=html;
+  window._preds=preds;
+  window._segs=segs;
+  document.getElementById('results-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function routeBadge(r){
+  const m={
+    'model_auto':['r-auto','model auto'],
+    'claude_fallback':['r-claude','claude fallback'],
+    'human_review':['r-review','human review'],
+    'human_review_subindustry':['r-subrev','review sub-ind'],
+  };
+  const[cls,lbl]=m[r]||['r-review',r];
+  return`<span class="route-badge ${cls}">${lbl}</span>`;
+}
+
+// ── Claude explain ─────────────────────────────────────────
+async function askClaude(idx, segText){
+  const p=(window._preds||[])[idx];
+  if(!p)return;
+  const body=document.getElementById('cl-'+idx);
+  body.style.display='block';
+  body.innerHTML='<span class="spin"></span> Asking Claude...';
+  const top3=(p.industry_top5||[]).slice(0,3).map(x=>({code:x.code,probability:x.probability}));
+  try{
+    const r=await fetch(`${API}/explain`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({segment_text:segText,top3_preds:top3})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    body.textContent=d.explanation||'No explanation.';
+  }catch(e){body.textContent='Error: '+e.message;}
+}
+
+// ── Batch ──────────────────────────────────────────────────
+async function runBatch(){
+  let segs;
+  try{segs=JSON.parse(document.getElementById('batch-ta').value);}
+  catch(e){document.getElementById('batch-out').innerHTML='<div style="color:var(--rd);font-size:12px;margin-top:8px">Invalid JSON: '+e.message+'</div>';return;}
+
+  document.getElementById('batch-status').innerHTML='<span class="spin"></span> Classifying '+segs.length+' segments...';
+  document.getElementById('export-btn').style.display='none';
+  document.getElementById('batch-out').innerHTML='';
+
+  try{
+    const payload={
+      company_id:document.getElementById('cid').value||'BATCH',
+      long_profile:document.getElementById('lp').value,
+      as_of_date:document.getElementById('yr').value,
+      segments:segs.map(s=>({name:s.name||'',description:s.description||'',revenue_share:s.revenue_share||0,is_largest:false}))
+    };
+    const r=await fetch(`${API}/predict/full`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    lastBatchData=d;
+    renderBatch(d, segs);
+    const routes={};
+    (d.predictions||[]).forEach(p=>routes[p.route]=(routes[p.route]||0)+1);
+    document.getElementById('batch-status').textContent=`${(d.predictions||[]).length} segments · ${Math.round(d.total_latency_ms||0)}ms · routes: ${JSON.stringify(routes)}`;
+    document.getElementById('export-btn').style.display='inline-block';
+  }catch(e){
+    document.getElementById('batch-status').textContent='Error: '+e.message;
+    document.getElementById('batch-out').innerHTML='<div style="color:var(--rd);font-size:12px;margin-top:8px">'+e.message+'</div>';
+  }
+}
+
+function renderBatch(d, segs){
+  const preds=d.predictions||[];
+  let html='<table class="batch-table"><thead><tr><th>Segment</th><th>Industry</th><th>Sub-industry</th><th>Conf</th><th>Route</th><th>Explain</th></tr></thead><tbody>';
+  preds.forEach((p,i)=>{
+    const conf=(p.industry_confidence*100);
+    const col=conf>=70?'var(--g)':conf>=10?'var(--am)':'var(--rd)';
+    const sub=p.subindustry_code||'-';
+    const segText=(segs[i]?.name||p.segment_name)+': '+(segs[i]?.description||'');
+    html+=`<tr>
+      <td><b>${esc(p.segment_name)}</b></td>
+      <td>
+        <span class="bt-code">${p.industry_code}</span>
+        <span class="bt-name">${esc(p.industry_name||'')}</span>
+      </td>
+      <td>
+        <span class="bt-code">${sub!=='unavailable'?sub:'—'}</span>
+        <span class="bt-name">${esc(p.subindustry_name||'')}</span>
+      </td>
+      <td style="color:${col};font-family:var(--fm);font-size:12px">${conf.toFixed(1)}%</td>
+      <td>${routeBadge(p.route)}</td>
+      <td>
+        <button class="bt-claude" onclick="batchClaude(${i},'${esc(segText.slice(0,200))}')">Why? →</button>
+        <div class="bt-explain" id="bt-cl-${i}"></div>
+      </td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('batch-out').innerHTML=html;
+  window._batchPreds=preds;
+}
+
+async function batchClaude(idx, segText){
+  const p=(window._batchPreds||[])[idx];
+  if(!p)return;
+  const body=document.getElementById('bt-cl-'+idx);
+  body.style.display='block';
+  body.innerHTML='<span class="spin"></span> Asking...';
+  const top3=(p.industry_top5||[]).slice(0,3).map(x=>({code:x.code,probability:x.probability}));
+  try{
+    const r=await fetch(`${API}/explain`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({segment_text:segText,top3_preds:top3})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    body.textContent=d.explanation||'No explanation.';
+  }catch(e){body.textContent='Error: '+e.message;}
+}
+
+// ── Export CSV ─────────────────────────────────────────────
+function exportCSV(){
+  if(!lastBatchData)return;
+  const rows=[['Segment','Industry Code','Industry Name','SubIndustry Code','SubIndustry Name','Confidence','Route']];
+  (lastBatchData.predictions||[]).forEach(p=>{
+    rows.push([p.segment_name,p.industry_code,p.industry_name||'',p.subindustry_code||'',p.subindustry_name||'',(p.industry_confidence*100).toFixed(1)+'%',p.route]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='gecs_predictions.csv';
+  a.click();
+}
+
+// ── History ────────────────────────────────────────────────
+function saveHistory(cid, data){
+  predHistory.unshift({cid, ms:Math.round(data.total_latency_ms||0), n:(data.predictions||[]).length, ts:new Date().toLocaleTimeString()});
+  predHistory=predHistory.slice(0,5);
+  renderHistory();
+}
+
+function renderHistory(){
+  const sec=document.getElementById('hist-section');
+  const list=document.getElementById('hist-list');
+  if(!predHistory.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  list.innerHTML=predHistory.map((h,i)=>`<div class="hist-item" onclick="loadHistory(${i})">${h.cid} · ${h.n} segs · ${h.ms}ms <span style="color:var(--mu);margin-left:4px">${h.ts}</span></div>`).join('');
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function cpCode(btn){
+  const t=btn.parentElement.textContent.replace('copy','').trim();
+  navigator.clipboard.writeText(t).then(()=>{btn.textContent='copied!';setTimeout(()=>btn.textContent='copy',1500)});
+}
+
+function showErr(msg){const b=document.getElementById('err-box');b.textContent=msg;b.style.display='block';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Keyboard shortcut — Cmd/Ctrl+Enter to predict
+document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();predict();}});
+
+// ── Init ───────────────────────────────────────────────────
+checkHealth();
+</script>
+</body>
+</html>
