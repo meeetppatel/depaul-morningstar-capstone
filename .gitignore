@@ -12,3 +12,7 @@ api/artifacts/*.pkl
 api/artifacts/*.npy
 api/artifacts/gecs_definitions.json
 .env
+models/
+api/
+baseline_v9_artifacts/
+**/.DS_Store
