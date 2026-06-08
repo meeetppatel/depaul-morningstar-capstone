@@ -1,19 +1,32 @@
-data/
-*.csv
-*.xlsx
-.venv/
-__pycache__/
-.DS_Store
-*.ipynb_checkpoints
+# Model weights (downloaded separately from Drive)
+weights/
+model_artifacts/
 
-# API artifacts — model weights
-api/artifacts/*.pt
-api/artifacts/*.pkl
-api/artifacts/*.npy
-api/artifacts/gecs_definitions.json
-.env
-models/
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Data (large CSVs not pushed)
+data/
+*.parquet
 api/
-baseline_v9_artifacts/
-**/.DS_Store
-model_artifacts/**/*.pt
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

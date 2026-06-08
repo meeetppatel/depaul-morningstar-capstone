@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+pandas
+numpy
+scipy
+scikit-learn
+joblib
+torch
+transformers
+sentencepiece
+tqdm
+tiktoken
+protobuf

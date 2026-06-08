@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GECS Industry + Subindustry Predictor</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #687387;
+      --line: #d8dee9;
+      --accent: #2563eb;
+      --accent-2: #0f766e;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    header p { margin: 0; color: var(--muted); font-size: 13px; }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+    }
+    section, .result {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    h2 { font-size: 15px; margin: 0 0 12px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 5px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      background: white;
+    }
+    textarea { min-height: 96px; resize: vertical; }
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
+      width: 100%;
+    }
+    button.secondary { background: var(--accent-2); }
+    button:disabled { opacity: .6; cursor: wait; }
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 8px; }
+    .error { color: var(--danger); white-space: pre-wrap; }
+    .status { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 8px 0 14px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 7px 6px; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; background: #fafbfe; }
+    th[title] { cursor: help; text-decoration: underline dotted #9aa4b2; text-underline-offset: 3px; }
+    .score { font-variant-numeric: tabular-nums; text-align: right; }
+    .prediction-row {
+      font-weight: 700;
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+    .industry-prediction { background: #eff6ff; }
+    .subindustry-prediction { background: #ecfdf5; box-shadow: inset 4px 0 0 var(--accent-2); }
+    .tag {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+    .final-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+    .selected-strip {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin: 8px 0 12px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .selected-strip.sub {
+      border-color: #bbf7d0;
+      background: #ecfdf5;
+    }
+    .selected-strip strong { display: block; margin-bottom: 2px; }
+    .result { margin-bottom: 16px; }
+    .result h3 { margin: 0 0 4px; font-size: 16px; }
+    .warnings {
+      border-left: 4px solid #f59e0b;
+      background: #fff7ed;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .company-section { margin-top: 18px; padding-top: 14px; border-top: 2px solid var(--line); }
+    .company-section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+    .company-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      margin: 0 0 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .company-heading::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+    .company-empty-note { color: var(--muted); font-size: 12px; margin: 0 0 10px; font-style: italic; }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>GECS Industry + Subindustry Predictor</h1>
+  <p>Enter one segment manually or upload a CSV with SegmentName, SegmentDescription, and LongProfile.</p>
+</header>
+<main>
+  <aside>
+    <section>
+      <h2>Manual Prediction</h2>
+      <label for="companyId">CompanyId, optional</label>
+      <input id="companyId" placeholder="12346789">
+      <label for="segmentName">SegmentName *</label>
+      <input id="segmentName" placeholder="Cloud Services">
+      <label for="segmentDescription">SegmentDescription, optional</label>
+      <textarea id="segmentDescription" placeholder="Provides compute, storage, database, analytics, and cloud infrastructure services."></textarea>
+      <label for="longProfile">LongProfile, optional</label>
+      <textarea id="longProfile" placeholder="Company long profile..."></textarea>
+      <label for="revenueShare">Revenue share, optional</label>
+      <input id="revenueShare" type="number" min="0" max="1" step="0.0001" placeholder="0.42">
+      <label style="display:flex; gap:8px; align-items:center; color:var(--ink); font-size:13px;">
+        <input id="isLargestShare" type="checkbox" style="width:auto; margin:0;">
+        This is the largest revenue-share segment
+      </label>
+      <label for="knownIndustry">Known industry, optional</label>
+      <input id="knownIndustry" list="industryOptions" placeholder="Search by code or name">
+      <button id="predictManual">Predict Industry + Subindustry</button>
+      <button id="predictManualIndustry" class="secondary" style="background:#4f46e5;">Predict Industry Only</button>
+      <button id="predictManualSubindustry" class="secondary" style="background:#9333ea;">Predict Subindustry Only</button>
+      <p class="hint">If you know the 8-digit industry, choose it here. The app will skip Task 1 for that row and rank only subindustries under that industry.</p>
+    </section>
+    <section style="margin-top:14px;">
+      <h2>CSV Prediction</h2>
+      <input id="csvFile" type="file" accept=".csv,text/csv">
+      <label for="csvKnownIndustry">Known industry for all CSV rows, optional</label>
+      <input id="csvKnownIndustry" list="industryOptions" placeholder="Search by code or name">
+      <datalist id="industryOptions"></datalist>
+      <button class="secondary" id="predictCsv">Predict CSV</button>
+      <p class="hint">CSV format: CompanyId, AsOfDate, LongProfile, SegmentName, SegmentDescription, Revenue, total_revenue_company_as_of, revenue_share, is_largest_share_segment, MstarGlobal.</p>
+      <p class="hint"><a href="/api/template.csv">Download CSV template</a></p>
+    </section>
+  </aside>
+  <section>
+    <h2>Results</h2>
+    <p id="status" class="status">Model server is ready. First prediction may take a few minutes while model weights load.</p>
+    <div id="output"></div>
+  </section>
+</main>
+<script>
+const statusEl = document.getElementById("status");
+const outputEl = document.getElementById("output");
+const manualBtn = document.getElementById("predictManual");
+const manualIndustryBtn = document.getElementById("predictManualIndustry");
+const manualSubindustryBtn = document.getElementById("predictManualSubindustry");
+const csvBtn = document.getElementById("predictCsv");
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function fmt(value) {
+  if (value === undefined || value === null || value === "") return "";
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toFixed(4) : esc(value);
+}
+function pct(value) {
+  if (value === undefined || value === null || value === "") return "";
+  const n = Number(value);
+  return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : esc(value);
+}
+function parseIndustryCode(value) {
+  const match = String(value || "").match(/\d{8}/);
+  return match ? match[0] : "";
+}
+async function loadIndustries() {
+  const res = await fetch("/api/industries");
+  const data = await res.json();
+  const list = document.getElementById("industryOptions");
+  list.innerHTML = "";
+  for (const row of data.industries) {
+    const opt = document.createElement("option");
+    opt.value = `${row.industry_code} - ${row.industry_name}`;
+    opt.label = `${row.sector_name || ""} / ${row.industry_group_name || ""}`;
+    list.appendChild(opt);
+  }
+}
+function renderCompanyMstarBlock(c) {
+  return `
+      <div class="result">
+        <h3>Company-Level MstarGlobal Industry${c.company_id ? ` &middot; <span style="color:var(--muted);font-weight:400;">CompanyId ${esc(c.company_id)}</span>` : ''}</h3>
+        <table>
+          <tbody>
+            <tr><th title="Predicted 8-digit MstarGlobal industry code for this company.">Code</th><td>${esc(c.mstarglobal_code)}</td></tr>
+            <tr><th title="Industry name associated with the predicted company-level MstarGlobal code.">Industry</th><td>${esc(c.industry_name)}</td></tr>
+            <tr><th title="Company identifier from the uploaded CSV or manual input.">CompanyId</th><td>${esc(c.company_id)}</td></tr>
+            <tr><th title="Segment used to infer the company-level MstarGlobal code.">Selected Segment</th><td>${esc(c.selected_segment_name)}</td></tr>
+            <tr><th title="Revenue share for the selected segment, if supplied.">Revenue Share</th><td>${fmt(c.revenue_share)}</td></tr>
+            <tr><th title="How the app chose the company-level segment.">Source</th><td>${esc(c.source)}</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">${esc(c.note)}</p>
+      </div>`;
+}
+function renderRowBlock(row) {
+  const industryRows = row.industry_candidates || [];
+  const subindustryRows = row.subindustry_candidates || [];
+  const finalIndustry = industryRows[0] || {};
+  const finalSubindustry = subindustryRows[0] || {};
+  const industries = industryRows.map(x => `
+    <tr${Number(x.rank) === 1 ? ' class="prediction-row industry-prediction"' : ''}>
+      <td>${x.rank}${Number(x.rank) === 1 ? '<span class="final-tag">FINAL</span>' : ''}</td>
+      <td>${esc(x.industry_code)}</td>
+      <td>${esc(x.industry_name)}</td>
+      <td class="score">${pct(x.confidence ?? x.score)}</td>
+    </tr>`).join("");
+  const subs = subindustryRows.map(x => `
+    <tr${Number(x.rank) === 1 ? ' class="prediction-row subindustry-prediction"' : ''}>
+      <td>${x.rank}${Number(x.rank) === 1 ? '<span class="final-tag">FINAL</span>' : ''}</td>
+      <td>${esc(x.subindustry_code)}</td>
+      <td>${esc(x.subindustry_name)}</td>
+      <td>${esc(x.industry_code)} ${esc(x.industry_name)}</td>
+      <td class="score">${pct(x.confidence ?? x.cross_encoder_score)}</td>
+    </tr>`).join("");
+  const industryPanel = industryRows.length ? `
+        <div>
+          <h2>Top Industry Candidates</h2>
+          <div class="selected-strip">
+            <strong>Selected Industry</strong>
+            ${esc(finalIndustry.industry_code || "")} ${esc(finalIndustry.industry_name || "")}
+          </div>
+          <table>
+            <thead><tr>
+              <th title="Candidate order after Task 1 ranking.">Rank</th>
+              <th title="8-digit MstarGlobal parent industry code.">Code</th>
+              <th title="Parent industry name from the taxonomy.">Name</th>
+              <th class="score" title="Task 1 confidence relative to the displayed top candidates. The displayed candidates sum to 100%.">Confidence</th>
+            </tr></thead>
+            <tbody>${industries}</tbody>
+          </table>
+        </div>` : "";
+  const subindustryPanel = subindustryRows.length ? `
+        <div>
+          <h2>Top Subindustry Candidates</h2>
+          <div class="selected-strip sub">
+            <strong>Selected Subindustry</strong>
+            ${esc(finalSubindustry.subindustry_code || "")} ${esc(finalSubindustry.subindustry_name || "")}
+          </div>
+          <table>
+            <thead><tr>
+              <th title="Candidate order after Task 2 reranking.">Rank</th>
+              <th title="10-digit subindustry code: 8-digit parent industry plus 2-digit activity suffix.">Code</th>
+              <th title="Subindustry/activity name from the taxonomy.">Name</th>
+              <th title="Parent 8-digit industry code and name for this subindustry.">Parent</th>
+              <th class="score" title="Subindustry confidence aligned with the FINAL ranking. Combines the cross-encoder match probability with the parent-industry prior, so the FINAL row is always the highest.">Confidence</th>
+            </tr></thead>
+            <tbody>${subs}</tbody>
+          </table>
+        </div>` : "";
+  const layoutClass = industryRows.length && subindustryRows.length ? "grid2" : "";
+  return `
+    <div class="result">
+      <h3>${esc(row.segment_name || `Row ${row.row_id}`)}${row.known_industry_used ? '<span class="tag">known industry used</span>' : ''}${row.is_largest_share_segment ? '<span class="tag">largest share</span>' : ''}</h3>
+      <p class="hint">CompanyId: ${esc(row.company_id || "not provided")}</p>
+      <p class="hint">AsOfDate: ${esc(row.as_of_date || "not provided")} | Revenue: ${fmt(row.revenue) || "not provided"} | Revenue share: ${fmt(row.revenue_share) || "not provided"}</p>
+      <div class="${layoutClass}">
+        ${industryPanel}
+        ${subindustryPanel}
+      </div>
+    </div>`;
+}
+function render(data) {
+  let html = "";
+  if (data.warnings && data.warnings.length) {
+    html += `<div class="warnings">${data.warnings.map(esc).join("<br>")}</div>`;
+  }
+
+  const results = data.results || [];
+  const companyPreds = new Map();
+  for (const p of (data.company_mstarglobal_predictions || [])) {
+    companyPreds.set(p.company_id || "", p);
+  }
+
+  const companyOrder = [];
+  const seen = new Set();
+  for (const row of results) {
+    const cid = row.company_id || "";
+    if (!seen.has(cid)) { seen.add(cid); companyOrder.push(cid); }
+  }
+  const multipleCompanies = companyOrder.length > 1;
+
+  if (!multipleCompanies) {
+    const pred = companyPreds.get(companyOrder[0] || "");
+    if (pred) html += renderCompanyMstarBlock(pred);
+    for (const row of results) html += renderRowBlock(row);
+  } else {
+    for (const cid of companyOrder) {
+      const label = cid ? `CompanyId ${esc(cid)}` : `Unspecified CompanyId`;
+      let inner = `<div class="company-heading">${label}</div>`;
+      const pred = companyPreds.get(cid);
+      if (pred) {
+        inner += renderCompanyMstarBlock(pred);
+      } else {
+        inner += `<p class="company-empty-note">No company-level MstarGlobal: mark is_largest_share_segment on one row to surface a company-level prediction.</p>`;
+      }
+      for (const row of results) {
+        if ((row.company_id || "") === cid) inner += renderRowBlock(row);
+      }
+      html += `<div class="company-section">${inner}</div>`;
+    }
+  }
+
+  outputEl.innerHTML = html;
+  if (data.model) {
+    statusEl.textContent = `Done. Device: ${data.model.device}; Task 2 alpha: ${data.model.task2_alpha}`;
+  }
+}
+async function postJson(endpoint, payload) {
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+  return data;
+}
+function buildManualPayload() {
+  return {
+    top_k: 5,
+    known_industry_code: parseIndustryCode(document.getElementById("knownIndustry").value),
+    records: [{
+      CompanyId: document.getElementById("companyId").value,
+      SegmentName: document.getElementById("segmentName").value,
+      SegmentDescription: document.getElementById("segmentDescription").value,
+      LongProfile: document.getElementById("longProfile").value,
+      revenue_share: document.getElementById("revenueShare").value,
+      is_largest_share_segment: document.getElementById("isLargestShare").checked
+    }]
+  };
+}
+async function runManual(endpoint, btn, label) {
+  outputEl.innerHTML = "";
+  statusEl.textContent = `${label}. First run may load large model weights...`;
+  const buttons = [manualBtn, manualIndustryBtn, manualSubindustryBtn];
+  buttons.forEach(b => b.disabled = true);
+  try {
+    render(await postJson(endpoint, buildManualPayload()));
+  } catch (err) {
+    outputEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+    statusEl.textContent = "Prediction failed.";
+  } finally {
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+manualBtn.onclick = () => runManual("/api/predict", manualBtn, "Scoring industry and subindustry");
+manualIndustryBtn.onclick = () => runManual("/api/predict_industry", manualIndustryBtn, "Scoring industry only");
+manualSubindustryBtn.onclick = () => runManual("/api/predict_subindustry", manualSubindustryBtn, "Scoring subindustry only");
+csvBtn.onclick = async () => {
+  const file = document.getElementById("csvFile").files[0];
+  if (!file) {
+    outputEl.innerHTML = '<p class="error">Choose a CSV file first.</p>';
+    return;
+  }
+  outputEl.innerHTML = "";
+  statusEl.textContent = "Uploading CSV and scoring rows...";
+  csvBtn.disabled = true;
+  try {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("known_industry_code", parseIndustryCode(document.getElementById("csvKnownIndustry").value));
+    form.append("top_k", "5");
+    const res = await fetch("/api/predict_csv", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+    render(data);
+  } catch (err) {
+    outputEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+    statusEl.textContent = "Prediction failed.";
+  } finally {
+    csvBtn.disabled = false;
+  }
+};
+loadIndustries().catch(err => {
+  outputEl.innerHTML = `<p class="error">Could not load industry list: ${esc(err.message)}</p>`;
+});
+</script>
+</body>
+</html>
