@@ -642,6 +642,20 @@ class PredictionService:
                 df[col] = ""
         return df
 
+    def _row_meta(self, records, i, known_industry_code=None):
+        rec = records[i]
+        return {
+            "row_id": i + 1,
+            "segment_name": rec.get("SegmentName"),
+            "company_id": rec.get("CompanyId"),
+            "as_of_date": rec.get("AsOfDate"),
+            "revenue": rec.get("Revenue"),
+            "total_revenue_company_as_of": rec.get("total_revenue_company_as_of"),
+            "revenue_share": rec.get("revenue_share"),
+            "is_largest_share_segment": rec.get("is_largest_share_segment"),
+            "known_industry_used": bool(known_industry_code),
+        }
+
     def predict_industry(self, records: list[dict[str, Any]], top_k: int = 5) -> dict[str, Any]:
         df = self._records_to_frame(records)
         rows, probs = self.industry_ranker.top_industries(df, top_k=top_k)
@@ -651,14 +665,15 @@ class PredictionService:
             confidence_flag = "high" if top_prob >= LOW_CONFIDENCE_THRESHOLD else "low"
             for cand in candidates:
                 cand["industry_name"] = self.parent_name.get(cand["industry_code"], "")
-            out.append({
-                "input_index": i,
-                "input": records[i],
-                "top_k_industries": candidates,
+            row = self._row_meta(records, i)
+            row.update({
+                "industry_candidates": [{"rank":c["rank"],"industry_code":c["industry_code"],"industry_name":c["industry_name"],"confidence":c["score"],"score":c["score"]} for c in candidates],
+                "subindustry_candidates": [],
                 "top1_confidence": top_prob,
                 "confidence_flag": confidence_flag,
                 "recommendation": "auto_accept" if confidence_flag == "high" else "analyst_review",
             })
+            out.append(row)
         return {"task": "industry", "results": out}
 
     def predict_subindustry(
@@ -710,42 +725,28 @@ class PredictionService:
                     parent_priors.append(parent_prob)
 
             if not pair_texts:
-                results.append({
-                    "input_index": i, "input": records[i],
-                    "top_k_subindustries": [],
-                    "top1_confidence": top1_confidence_per_row[i],
-                    "confidence_flag": "low",
-                    "recommendation": "analyst_review",
-                })
+                row = self._row_meta(records, i, known_industry_code)
+                row.update({"industry_candidates":[],"subindustry_candidates":[],"top1_confidence":top1_confidence_per_row[i],"confidence_flag":"low","recommendation":"analyst_review"})
+                results.append(row)
                 continue
 
             ce_logits = self.subindustry_ranker.score_pairs(pair_texts)
             parent_log_priors = np.log(np.array(parent_priors) + 1e-12)
             combined = ce_logits + self.alpha * parent_log_priors
 
+            from scipy.special import softmax as _sm
             order = np.argsort(-combined)
+            combined_probs = _sm(combined)
             top = []
             for rank, idx in enumerate(order[:top_k], start=1):
                 code = leaf_codes[idx]
-                top.append({
-                    "rank": rank,
-                    "subindustry_code": code,
-                    "subindustry_name": self.leaf_name.get(code, ""),
-                    "parent_industry_code": code[:8],
-                    "parent_industry_name": self.parent_name.get(code[:8], ""),
-                    "ce_logit": float(ce_logits[idx]),
-                    "combined_score": float(combined[idx]),
-                })
+                top.append({"rank":rank,"subindustry_code":code,"subindustry_name":self.leaf_name.get(code,""),"industry_code":code[:8],"industry_name":self.parent_name.get(code[:8],""),"confidence":float(combined_probs[idx]),"cross_encoder_score":float(ce_logits[idx]),"combined_score":float(combined[idx])})
 
             top1_conf = top1_confidence_per_row[i]
             confidence_flag = "high" if top1_conf >= LOW_CONFIDENCE_THRESHOLD else "low"
-            results.append({
-                "input_index": i, "input": records[i],
-                "top_k_subindustries": top,
-                "top1_confidence": top1_conf,
-                "confidence_flag": confidence_flag,
-                "recommendation": "auto_accept" if confidence_flag == "high" else "analyst_review",
-            })
+            row = self._row_meta(records, i, known_industry_code)
+            row.update({"industry_candidates":[],"subindustry_candidates":top,"top1_confidence":top1_conf,"confidence_flag":confidence_flag,"recommendation":"auto_accept" if confidence_flag=="high" else "analyst_review"})
+            results.append(row)
 
         return {"task": "subindustry", "alpha": self.alpha, "results": results}
 
@@ -759,15 +760,10 @@ class PredictionService:
         subindustry_result = self.predict_subindustry(records, top_k=top_k, known_industry_code=known_industry_code)
         merged = []
         for ind, sub in zip(industry_result["results"], subindustry_result["results"]):
-            merged.append({
-                "input_index": ind["input_index"],
-                "input": ind["input"],
-                "top_k_industries": ind["top_k_industries"],
-                "top_k_subindustries": sub["top_k_subindustries"],
-                "top1_industry_confidence": ind["top1_confidence"],
-                "confidence_flag": ind["confidence_flag"],
-                "recommendation": ind["recommendation"],
-            })
+            row = dict(ind)
+            row["subindustry_candidates"] = sub.get("subindustry_candidates", [])
+            row["known_industry_used"] = sub.get("known_industry_used", False)
+            merged.append(row)
         return {"task": "both", "alpha": self.alpha, "results": merged}
 
 
