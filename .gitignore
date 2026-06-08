@@ -16,3 +16,4 @@ models/
 api/
 baseline_v9_artifacts/
 **/.DS_Store
+model_artifacts/**/*.pt
