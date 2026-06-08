@@ -1,437 +1,822 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GECS Industry + Subindustry Predictor</title>
-  <style>
-    :root {
-      --bg: #f7f8fb;
-      --panel: #ffffff;
-      --ink: #1f2937;
-      --muted: #687387;
-      --line: #d8dee9;
-      --accent: #2563eb;
-      --accent-2: #0f766e;
-      --danger: #b91c1c;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-    }
-    header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
-      position: sticky;
-      top: 0;
-      z-index: 3;
-    }
-    h1 { font-size: 20px; margin: 0 0 4px; }
-    header p { margin: 0; color: var(--muted); font-size: 13px; }
-    main {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 18px;
-    }
-    section, .result {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-    }
-    h2 { font-size: 15px; margin: 0 0 12px; }
-    label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 5px; }
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 9px 10px;
-      font: inherit;
-      background: white;
-    }
-    textarea { min-height: 96px; resize: vertical; }
-    button {
-      border: 0;
-      border-radius: 6px;
-      padding: 10px 12px;
-      background: var(--accent);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 14px;
-      width: 100%;
-    }
-    button.secondary { background: var(--accent-2); }
-    button:disabled { opacity: .6; cursor: wait; }
-    .hint { color: var(--muted); font-size: 12px; line-height: 1.4; margin-top: 8px; }
-    .error { color: var(--danger); white-space: pre-wrap; }
-    .status { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 8px 0 14px; }
-    th, td { border-bottom: 1px solid var(--line); padding: 7px 6px; text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; background: #fafbfe; }
-    th[title] { cursor: help; text-decoration: underline dotted #9aa4b2; text-underline-offset: 3px; }
-    .score { font-variant-numeric: tabular-nums; text-align: right; }
-    .prediction-row {
-      font-weight: 700;
-      box-shadow: inset 4px 0 0 var(--accent);
-    }
-    .industry-prediction { background: #eff6ff; }
-    .subindustry-prediction { background: #ecfdf5; box-shadow: inset 4px 0 0 var(--accent-2); }
-    .tag {
-      display: inline-block;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-size: 12px;
-      margin-left: 6px;
-    }
-    .final-tag {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #dcfce7;
-      color: #166534;
-      font-size: 11px;
-      font-weight: 700;
-      margin-left: 6px;
-      white-space: nowrap;
-    }
-    .selected-strip {
-      border: 1px solid #bfdbfe;
-      background: #eff6ff;
-      border-radius: 6px;
-      padding: 8px 10px;
-      margin: 8px 0 12px;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    .selected-strip.sub {
-      border-color: #bbf7d0;
-      background: #ecfdf5;
-    }
-    .selected-strip strong { display: block; margin-bottom: 2px; }
-    .result { margin-bottom: 16px; }
-    .result h3 { margin: 0 0 4px; font-size: 16px; }
-    .warnings {
-      border-left: 4px solid #f59e0b;
-      background: #fff7ed;
-      padding: 10px 12px;
-      margin-bottom: 14px;
-      font-size: 13px;
-    }
-    .company-section { margin-top: 18px; padding-top: 14px; border-top: 2px solid var(--line); }
-    .company-section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
-    .company-heading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 600;
-      margin: 0 0 12px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .company-heading::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
-    .company-empty-note { color: var(--muted); font-size: 12px; margin: 0 0 10px; font-style: italic; }
-    @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; }
-      .grid2 { grid-template-columns: 1fr; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GECS Predictor — DePaul × Morningstar</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --ink: #0f172a;
+    --ink-2: #334155;
+    --muted: #64748b;
+    --hint: #94a3b8;
+    --accent: #2563eb;
+    --accent-2: #0d9488;
+    --accent-3: #7c3aed;
+    --success: #10b981;
+    --success-bg: #d1fae5;
+    --warning: #f59e0b;
+    --warning-bg: #fef3c7;
+    --danger: #ef4444;
+    --danger-bg: #fee2e2;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 4px 10px -3px rgba(15, 23, 42, 0.05);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0e1a;
+    --surface: #131825;
+    --surface-2: #1a2032;
+    --border: #232a3d;
+    --border-strong: #2f3850;
+    --ink: #e2e8f0;
+    --ink-2: #cbd5e1;
+    --muted: #94a3b8;
+    --hint: #64748b;
+    --accent: #60a5fa;
+    --accent-2: #2dd4bf;
+    --accent-3: #a78bfa;
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.15);
+    --warning: #fbbf24;
+    --warning-bg: rgba(251, 191, 36, 0.15);
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.15);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    transition: background 0.2s, color 0.2s;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-3));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 16px;
+  }
+  .brand h1 { font-size: 16px; margin: 0; font-weight: 600; color: var(--ink); }
+  .brand p { font-size: 12px; margin: 0; color: var(--muted); }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 11px; border-radius: 999px;
+    background: var(--success-bg); color: var(--success);
+    font-size: 12px; font-weight: 500;
+  }
+  .status-pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .theme-toggle {
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--ink-2); padding: 6px 10px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 14px; transition: all 0.15s;
+  }
+  .theme-toggle:hover { border-color: var(--border-strong); }
+
+  main {
+    max-width: 1500px; margin: 0 auto; padding: 24px 28px 60px;
+    display: grid; grid-template-columns: 380px 1fr; gap: 24px;
+  }
+  @media (max-width: 1024px) { main { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+  }
+  .panel-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 13px; font-weight: 600; color: var(--ink-2);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .panel-body { padding: 18px; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 12px; color: var(--ink-2);
+    margin-bottom: 5px; font-weight: 500;
+  }
+  .field input, .field textarea {
+    width: 100%; padding: 9px 11px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--ink);
+    font-size: 13px; font-family: inherit; transition: border-color 0.15s;
+  }
+  .field input:focus, .field textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  .field textarea { resize: vertical; min-height: 56px; }
+  .checkbox-field {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; margin-bottom: 14px;
+    font-size: 13px; color: var(--ink-2);
+  }
+  .checkbox-field input { margin: 0; cursor: pointer; }
+
+  .samples {
+    margin-bottom: 18px; padding: 12px;
+    background: var(--surface-2); border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .samples-label {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; font-weight: 600;
+  }
+  .sample-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sample-btn {
+    padding: 5px 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: 11px; color: var(--ink-2); cursor: pointer;
+    transition: all 0.15s; font-weight: 500;
+  }
+  .sample-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .btn {
+    width: 100%; padding: 10px 14px; border: none;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; color: white;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent); }
+  .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+  .btn-secondary { background: var(--accent-2); }
+  .btn-secondary:hover { background: #0f766e; transform: translateY(-1px); }
+  .btn-tertiary { background: var(--accent-3); }
+  .btn-tertiary:hover { background: #6d28d9; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border); color: var(--ink-2);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .divider { margin: 18px 0; padding: 0; border: none; border-top: 1px solid var(--border); }
+  .section-label {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 10px; font-weight: 600;
+  }
+
+  .results-status {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; background: var(--surface-2);
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .results-status .status-text { color: var(--muted); }
+  .timer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: 11px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; font-weight: 500;
+  }
+  .timer-badge.active { border-color: var(--accent); color: var(--accent); }
+
+  .empty { padding: 80px 30px; text-align: center; color: var(--muted); }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .empty h2 { font-size: 16px; color: var(--ink-2); margin: 0 0 6px; font-weight: 600; }
+  .empty p { margin: 0; font-size: 13px; }
+
+  .result-card {
+    margin: 18px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow-sm);
+    animation: slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-header {
+    padding: 14px 18px; background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  }
+  .result-meta { flex: 1; min-width: 0; }
+  .result-meta h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .result-meta .submeta {
+    font-size: 11px; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .result-meta .submeta span::before { content: '• '; color: var(--hint); }
+  .result-meta .submeta span:first-child::before { content: ''; }
+
+  .routing-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .routing-badge.auto-accept { background: var(--success-bg); color: var(--success); }
+  .routing-badge.analyst-review { background: var(--warning-bg); color: var(--warning); }
+  .routing-badge::before {
+    content: ''; width: 7px; height: 7px;
+    border-radius: 50%; background: currentColor;
+  }
+
+  .breadcrumb {
+    padding: 12px 18px; background: linear-gradient(to right, transparent, var(--surface-2));
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; overflow-x: auto; white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .crumb {
+    padding: 4px 9px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--ink-2); font-weight: 500;
+  }
+  .crumb.industry { border-color: var(--accent); color: var(--accent); background: rgba(37, 99, 235, 0.05); }
+  .crumb.subindustry { border-color: var(--accent-2); color: var(--accent-2); background: rgba(13, 148, 136, 0.05); }
+  .crumb-code {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 10px; color: var(--muted); margin-right: 4px;
+  }
+  .crumb-sep { color: var(--hint); font-size: 14px; }
+
+  .result-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media (max-width: 768px) { .result-body { grid-template-columns: 1fr; } }
+  .candidates-section { padding: 18px; border-right: 1px solid var(--border); }
+  .candidates-section:last-child { border-right: none; }
+  @media (max-width: 768px) {
+    .candidates-section { border-right: none; border-bottom: 1px solid var(--border); }
+    .candidates-section:last-child { border-bottom: none; }
+  }
+  .candidates-title {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .candidates-title.industry::before {
+    content: ''; width: 3px; height: 12px;
+    background: var(--accent); border-radius: 2px;
+  }
+  .candidates-title.subindustry::before {
+    content: ''; width: 3px; height: 12px;
+    background: var(--accent-2); border-radius: 2px;
+  }
+
+  .candidate-row { margin-bottom: 10px; }
+  .candidate-row.top {
+    margin-bottom: 12px; padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .candidate-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 5px; gap: 10px;
+  }
+  .candidate-label {
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 12px; color: var(--ink); font-weight: 500;
+  }
+  .candidate-label .code {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 10px; color: var(--muted); margin-right: 6px;
+  }
+  .candidate-row.top .candidate-label { font-weight: 600; }
+  .candidate-row.top .candidate-label::before {
+    content: '★'; color: var(--warning); margin-right: 5px;
+  }
+  .candidate-pct {
+    font-size: 11px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap;
+  }
+  .bar-track {
+    width: 100%; height: 6px;
+    background: var(--surface-2); border-radius: 3px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); width: 0;
+  }
+  .bar-fill.industry { background: var(--accent); }
+  .bar-fill.subindustry { background: var(--accent-2); }
+  .bar-fill.low { background: var(--warning); }
+
+  .csv-row { display: flex; gap: 8px; align-items: center; }
+  .csv-row input[type="file"] { flex: 1; font-size: 12px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .hint a { color: var(--accent); text-decoration: none; }
+  .hint a:hover { text-decoration: underline; }
+
+  .error-card {
+    margin: 18px; padding: 14px 18px;
+    background: var(--danger-bg); border: 1px solid var(--danger);
+    border-radius: var(--radius-sm); color: var(--danger); font-size: 13px;
+  }
+  .error-card strong { font-weight: 600; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid currentColor; border-right-color: transparent;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
+
 <header>
-  <h1>GECS Industry + Subindustry Predictor</h1>
-  <p>Enter one segment manually or upload a CSV with SegmentName, SegmentDescription, and LongProfile.</p>
+  <div class="brand">
+    <div class="logo">G</div>
+    <div>
+      <h1>GECS Predictor</h1>
+      <p>FLANG-BERT + DeBERTa-v3 · DePaul × Morningstar</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="status-pill" id="serverStatus"><span class="dot"></span>API online</span>
+    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+  </div>
 </header>
+
 <main>
-  <aside>
-    <section>
-      <h2>Manual Prediction</h2>
-      <label for="companyId">CompanyId, optional</label>
-      <input id="companyId" placeholder="12346789">
-      <label for="segmentName">SegmentName *</label>
-      <input id="segmentName" placeholder="Cloud Services">
-      <label for="segmentDescription">SegmentDescription, optional</label>
-      <textarea id="segmentDescription" placeholder="Provides compute, storage, database, analytics, and cloud infrastructure services."></textarea>
-      <label for="longProfile">LongProfile, optional</label>
-      <textarea id="longProfile" placeholder="Company long profile..."></textarea>
-      <label for="revenueShare">Revenue share, optional</label>
-      <input id="revenueShare" type="number" min="0" max="1" step="0.0001" placeholder="0.42">
-      <label style="display:flex; gap:8px; align-items:center; color:var(--ink); font-size:13px;">
-        <input id="isLargestShare" type="checkbox" style="width:auto; margin:0;">
+
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Input</div>
+    </div>
+    <div class="panel-body">
+
+      <div class="samples">
+        <div class="samples-label">Try a sample</div>
+        <div class="sample-buttons" id="sampleButtons"></div>
+      </div>
+
+      <div class="field">
+        <label for="segmentName">Segment Name *</label>
+        <input id="segmentName" placeholder="e.g., Cloud Infrastructure" />
+      </div>
+
+      <div class="field">
+        <label for="segmentDescription">Segment Description</label>
+        <textarea id="segmentDescription" rows="3" placeholder="What does this segment do?"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="longProfile">Company Long Profile</label>
+        <textarea id="longProfile" rows="3" placeholder="Company overview"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="companyId">CompanyId</label>
+        <input id="companyId" placeholder="Optional company identifier" />
+      </div>
+
+      <div class="field">
+        <label for="asOfDate">As Of Date</label>
+        <input id="asOfDate" type="date" />
+      </div>
+
+      <div class="field">
+        <label for="revenue">Revenue ($M)</label>
+        <input id="revenue" type="number" step="any" placeholder="Optional" />
+      </div>
+
+      <div class="field">
+        <label for="totalRevenue">Total Revenue, Company ($M)</label>
+        <input id="totalRevenue" type="number" step="any" placeholder="Optional" />
+      </div>
+
+      <div class="field">
+        <label for="revenueShare">Revenue Share (0–1)</label>
+        <input id="revenueShare" type="number" step="0.01" min="0" max="1" placeholder="0.42" />
+      </div>
+
+      <label class="checkbox-field">
+        <input id="isLargest" type="checkbox" />
         This is the largest revenue-share segment
       </label>
-      <label for="knownIndustry">Known industry, optional</label>
-      <input id="knownIndustry" list="industryOptions" placeholder="Search by code or name">
-      <button id="predictManual">Predict Industry + Subindustry</button>
-      <button id="predictManualIndustry" class="secondary" style="background:#4f46e5;">Predict Industry Only</button>
-      <button id="predictManualSubindustry" class="secondary" style="background:#9333ea;">Predict Subindustry Only</button>
-      <p class="hint">If you know the 8-digit industry, choose it here. The app will skip Task 1 for that row and rank only subindustries under that industry.</p>
-    </section>
-    <section style="margin-top:14px;">
-      <h2>CSV Prediction</h2>
-      <input id="csvFile" type="file" accept=".csv,text/csv">
-      <label for="csvKnownIndustry">Known industry for all CSV rows, optional</label>
-      <input id="csvKnownIndustry" list="industryOptions" placeholder="Search by code or name">
-      <datalist id="industryOptions"></datalist>
-      <button class="secondary" id="predictCsv">Predict CSV</button>
-      <p class="hint">CSV format: CompanyId, AsOfDate, LongProfile, SegmentName, SegmentDescription, Revenue, total_revenue_company_as_of, revenue_share, is_largest_share_segment, MstarGlobal.</p>
-      <p class="hint"><a href="/api/template.csv">Download CSV template</a></p>
-    </section>
-  </aside>
-  <section>
-    <h2>Results</h2>
-    <p id="status" class="status">Model server is ready. First prediction may take a few minutes while model weights load.</p>
-    <div id="output"></div>
-  </section>
-</main>
-<script>
-const statusEl = document.getElementById("status");
-const outputEl = document.getElementById("output");
-const manualBtn = document.getElementById("predictManual");
-const manualIndustryBtn = document.getElementById("predictManualIndustry");
-const manualSubindustryBtn = document.getElementById("predictManualSubindustry");
-const csvBtn = document.getElementById("predictCsv");
 
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-}
-function fmt(value) {
-  if (value === undefined || value === null || value === "") return "";
-  const n = Number(value);
-  return Number.isFinite(n) ? n.toFixed(4) : esc(value);
-}
-function pct(value) {
-  if (value === undefined || value === null || value === "") return "";
-  const n = Number(value);
-  return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : esc(value);
-}
-function parseIndustryCode(value) {
-  const match = String(value || "").match(/\d{8}/);
-  return match ? match[0] : "";
-}
-async function loadIndustries() {
-  const res = await fetch("/api/industries");
-  const data = await res.json();
-  const list = document.getElementById("industryOptions");
-  list.innerHTML = "";
-  for (const row of data.industries) {
-    const opt = document.createElement("option");
-    opt.value = `${row.industry_code} - ${row.industry_name}`;
-    opt.label = `${row.sector_name || ""} / ${row.industry_group_name || ""}`;
-    list.appendChild(opt);
-  }
-}
-function renderCompanyMstarBlock(c) {
-  return `
-      <div class="result">
-        <h3>Company-Level MstarGlobal Industry${c.company_id ? ` &middot; <span style="color:var(--muted);font-weight:400;">CompanyId ${esc(c.company_id)}</span>` : ''}</h3>
-        <table>
-          <tbody>
-            <tr><th title="Predicted 8-digit MstarGlobal industry code for this company.">Code</th><td>${esc(c.mstarglobal_code)}</td></tr>
-            <tr><th title="Industry name associated with the predicted company-level MstarGlobal code.">Industry</th><td>${esc(c.industry_name)}</td></tr>
-            <tr><th title="Company identifier from the uploaded CSV or manual input.">CompanyId</th><td>${esc(c.company_id)}</td></tr>
-            <tr><th title="Segment used to infer the company-level MstarGlobal code.">Selected Segment</th><td>${esc(c.selected_segment_name)}</td></tr>
-            <tr><th title="Revenue share for the selected segment, if supplied.">Revenue Share</th><td>${fmt(c.revenue_share)}</td></tr>
-            <tr><th title="How the app chose the company-level segment.">Source</th><td>${esc(c.source)}</td></tr>
-          </tbody>
-        </table>
-        <p class="hint">${esc(c.note)}</p>
-      </div>`;
-}
-function renderRowBlock(row) {
-  const industryRows = row.industry_candidates || [];
-  const subindustryRows = row.subindustry_candidates || [];
-  const finalIndustry = industryRows[0] || {};
-  const finalSubindustry = subindustryRows[0] || {};
-  const industries = industryRows.map(x => `
-    <tr${Number(x.rank) === 1 ? ' class="prediction-row industry-prediction"' : ''}>
-      <td>${x.rank}${Number(x.rank) === 1 ? '<span class="final-tag">FINAL</span>' : ''}</td>
-      <td>${esc(x.industry_code)}</td>
-      <td>${esc(x.industry_name)}</td>
-      <td class="score">${pct(x.confidence ?? x.score)}</td>
-    </tr>`).join("");
-  const subs = subindustryRows.map(x => `
-    <tr${Number(x.rank) === 1 ? ' class="prediction-row subindustry-prediction"' : ''}>
-      <td>${x.rank}${Number(x.rank) === 1 ? '<span class="final-tag">FINAL</span>' : ''}</td>
-      <td>${esc(x.subindustry_code)}</td>
-      <td>${esc(x.subindustry_name)}</td>
-      <td>${esc(x.industry_code)} ${esc(x.industry_name)}</td>
-      <td class="score">${pct(x.confidence ?? x.cross_encoder_score)}</td>
-    </tr>`).join("");
-  const industryPanel = industryRows.length ? `
-        <div>
-          <h2>Top Industry Candidates</h2>
-          <div class="selected-strip">
-            <strong>Selected Industry</strong>
-            ${esc(finalIndustry.industry_code || "")} ${esc(finalIndustry.industry_name || "")}
-          </div>
-          <table>
-            <thead><tr>
-              <th title="Candidate order after Task 1 ranking.">Rank</th>
-              <th title="8-digit MstarGlobal parent industry code.">Code</th>
-              <th title="Parent industry name from the taxonomy.">Name</th>
-              <th class="score" title="Task 1 confidence relative to the displayed top candidates. The displayed candidates sum to 100%.">Confidence</th>
-            </tr></thead>
-            <tbody>${industries}</tbody>
-          </table>
-        </div>` : "";
-  const subindustryPanel = subindustryRows.length ? `
-        <div>
-          <h2>Top Subindustry Candidates</h2>
-          <div class="selected-strip sub">
-            <strong>Selected Subindustry</strong>
-            ${esc(finalSubindustry.subindustry_code || "")} ${esc(finalSubindustry.subindustry_name || "")}
-          </div>
-          <table>
-            <thead><tr>
-              <th title="Candidate order after Task 2 reranking.">Rank</th>
-              <th title="10-digit subindustry code: 8-digit parent industry plus 2-digit activity suffix.">Code</th>
-              <th title="Subindustry/activity name from the taxonomy.">Name</th>
-              <th title="Parent 8-digit industry code and name for this subindustry.">Parent</th>
-              <th class="score" title="Subindustry confidence aligned with the FINAL ranking. Combines the cross-encoder match probability with the parent-industry prior, so the FINAL row is always the highest.">Confidence</th>
-            </tr></thead>
-            <tbody>${subs}</tbody>
-          </table>
-        </div>` : "";
-  const layoutClass = industryRows.length && subindustryRows.length ? "grid2" : "";
-  return `
-    <div class="result">
-      <h3>${esc(row.segment_name || `Row ${row.row_id}`)}${row.known_industry_used ? '<span class="tag">known industry used</span>' : ''}${row.is_largest_share_segment ? '<span class="tag">largest share</span>' : ''}</h3>
-      <p class="hint">CompanyId: ${esc(row.company_id || "not provided")}</p>
-      <p class="hint">AsOfDate: ${esc(row.as_of_date || "not provided")} | Revenue: ${fmt(row.revenue) || "not provided"} | Revenue share: ${fmt(row.revenue_share) || "not provided"}</p>
-      <div class="${layoutClass}">
-        ${industryPanel}
-        ${subindustryPanel}
+      <div class="field">
+        <label for="knownIndustry">Known industry (skip Task 1)</label>
+        <input id="knownIndustry" list="industryList" placeholder="Search by code or name" />
+        <datalist id="industryList"></datalist>
       </div>
-    </div>`;
-}
-function render(data) {
-  let html = "";
-  if (data.warnings && data.warnings.length) {
-    html += `<div class="warnings">${data.warnings.map(esc).join("<br>")}</div>`;
-  }
 
-  const results = data.results || [];
-  const companyPreds = new Map();
-  for (const p of (data.company_mstarglobal_predictions || [])) {
-    companyPreds.set(p.company_id || "", p);
-  }
+      <div class="btn-group">
+        <button class="btn btn-primary" id="predictBoth">Predict Industry + Sub-industry</button>
+        <button class="btn btn-secondary" id="predictIndustry">Industry Only</button>
+        <button class="btn btn-tertiary" id="predictSub">Sub-industry Only</button>
+      </div>
 
-  const companyOrder = [];
-  const seen = new Set();
-  for (const row of results) {
-    const cid = row.company_id || "";
-    if (!seen.has(cid)) { seen.add(cid); companyOrder.push(cid); }
-  }
-  const multipleCompanies = companyOrder.length > 1;
+      <hr class="divider"/>
 
-  if (!multipleCompanies) {
-    const pred = companyPreds.get(companyOrder[0] || "");
-    if (pred) html += renderCompanyMstarBlock(pred);
-    for (const row of results) html += renderRowBlock(row);
-  } else {
-    for (const cid of companyOrder) {
-      const label = cid ? `CompanyId ${esc(cid)}` : `Unspecified CompanyId`;
-      let inner = `<div class="company-heading">${label}</div>`;
-      const pred = companyPreds.get(cid);
-      if (pred) {
-        inner += renderCompanyMstarBlock(pred);
-      } else {
-        inner += `<p class="company-empty-note">No company-level MstarGlobal: mark is_largest_share_segment on one row to surface a company-level prediction.</p>`;
-      }
-      for (const row of results) {
-        if ((row.company_id || "") === cid) inner += renderRowBlock(row);
-      }
-      html += `<div class="company-section">${inner}</div>`;
+      <div class="section-label">CSV Upload</div>
+      <div class="csv-row">
+        <input type="file" id="csvFile" accept=".csv" />
+        <button class="btn btn-outline" id="predictCsv" style="width:auto;padding:9px 12px;font-size:12px;">Upload</button>
+      </div>
+      <div class="hint">
+        Need the format? <a href="/api/template.csv" download>Download CSV template</a>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="results-status">
+      <span class="status-text" id="statusText">Ready. Fill a form or upload a CSV to begin.</span>
+      <span class="timer-badge" id="timerBadge">—</span>
+    </div>
+    <div id="resultsContainer">
+      <div class="empty">
+        <div class="empty-icon">🔮</div>
+        <h2>No predictions yet</h2>
+        <p>Pick a sample above or fill in segment details, then click predict.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('gecs-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+themeToggle.onclick = () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('gecs-theme', next);
+};
+
+const SAMPLES = [
+  {
+    label: '🥦 Packaged Foods',
+    data: {
+      segmentName: 'Frozen Vegetables',
+      segmentDescription: 'Manufactures and markets frozen vegetables, frozen prepared meals, and related frozen food products under multiple consumer brands sold in retail grocery channels.',
+      longProfile: 'American packaged-food manufacturer producing frozen and shelf-stable food products distributed through grocery retailers and food service channels.',
+      companyId: 'DEMO_FOODS', asOfDate: '2024-12-31',
+      revenue: 2400, totalRevenue: 5800, revenueShare: 0.414, isLargest: true,
     }
+  },
+  {
+    label: '🏦 Regional Bank',
+    data: {
+      segmentName: 'Consumer Banking',
+      segmentDescription: 'Retail banking products including checking and savings accounts, residential mortgages, auto loans, credit cards, and digital banking services to individual customers through 480 branches.',
+      longProfile: 'Regional commercial bank holding company offering consumer banking, commercial lending, and wealth management services across the southeastern United States.',
+      companyId: 'DEMO_BANK', asOfDate: '2024-12-31',
+      revenue: 3800, totalRevenue: 9500, revenueShare: 0.40, isLargest: true,
+    }
+  },
+  {
+    label: '🛢️ Oil & Gas E&P',
+    data: {
+      segmentName: 'Upstream E&P',
+      segmentDescription: 'Exploration, development, and production of crude oil and natural gas from owned and leased properties. Operates 1,200 producing wells across Texas, New Mexico, and offshore Gulf waters.',
+      longProfile: 'Independent oil and gas exploration and production company with assets in the Permian Basin and offshore Gulf of Mexico.',
+      companyId: 'DEMO_OIL', asOfDate: '2024-12-31',
+      revenue: 4200, totalRevenue: 4200, revenueShare: 1.0, isLargest: true,
+    }
+  },
+  {
+    label: '💻 Software',
+    data: {
+      segmentName: 'Cloud Infrastructure',
+      segmentDescription: 'Subscription-based cloud computing services including compute, storage, networking, container orchestration, serverless functions, and managed database offerings sold to enterprise customers worldwide.',
+      longProfile: 'Global enterprise software company providing cloud-based applications, infrastructure services, and AI platforms to large corporate customers.',
+      companyId: 'DEMO_TECH', asOfDate: '2024-12-31',
+      revenue: 28000, totalRevenue: 67000, revenueShare: 0.418, isLargest: true,
+    }
+  },
+  {
+    label: '🩺 Medical Devices',
+    data: {
+      segmentName: 'Cardiac Rhythm Management',
+      segmentDescription: 'Implantable pacemakers, defibrillators, and cardiac resynchronization devices along with related programmers and remote monitoring services sold to hospitals worldwide.',
+      longProfile: 'Medical device company developing and marketing implantable cardiac rhythm management devices, structural heart products, and electrophysiology mapping systems.',
+      companyId: 'DEMO_MED', asOfDate: '2024-12-31',
+      revenue: 6200, totalRevenue: 12400, revenueShare: 0.5, isLargest: true,
+    }
+  },
+];
+
+const sampleButtons = document.getElementById('sampleButtons');
+SAMPLES.forEach((s, idx) => {
+  const btn = document.createElement('button');
+  btn.className = 'sample-btn';
+  btn.textContent = s.label;
+  btn.onclick = () => loadSample(idx);
+  sampleButtons.appendChild(btn);
+});
+
+function loadSample(idx) {
+  const d = SAMPLES[idx].data;
+  document.getElementById('segmentName').value = d.segmentName || '';
+  document.getElementById('segmentDescription').value = d.segmentDescription || '';
+  document.getElementById('longProfile').value = d.longProfile || '';
+  document.getElementById('companyId').value = d.companyId || '';
+  document.getElementById('asOfDate').value = d.asOfDate || '';
+  document.getElementById('revenue').value = d.revenue || '';
+  document.getElementById('totalRevenue').value = d.totalRevenue || '';
+  document.getElementById('revenueShare').value = d.revenueShare || '';
+  document.getElementById('isLargest').checked = !!d.isLargest;
+  document.getElementById('knownIndustry').value = '';
+  setStatus(`Loaded sample: ${SAMPLES[idx].label}. Click "Predict" to run.`);
+}
+
+let INDUSTRY_INDEX = new Map();
+fetch('/api/industries')
+  .then(r => r.json())
+  .then(data => {
+    const list = document.getElementById('industryList');
+    (data.industries || []).forEach(i => {
+      const opt = document.createElement('option');
+      opt.value = `${i.industry_code} ${i.industry_name}`;
+      list.appendChild(opt);
+      INDUSTRY_INDEX.set(i.industry_code, i.industry_name);
+    });
+  })
+  .catch(() => {});
+
+function pct(value) {
+  if (value == null || isNaN(value)) return '—';
+  const p = Number(value) * 100;
+  return p.toFixed(2) + '%';
+}
+function esc(text) {
+  return String(text ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+function setStatus(msg) {
+  document.getElementById('statusText').textContent = msg;
+}
+
+let timerInterval = null;
+let timerStart = 0;
+const timerBadge = document.getElementById('timerBadge');
+function startTimer() {
+  timerStart = performance.now();
+  timerBadge.classList.add('active');
+  timerInterval = setInterval(() => {
+    const elapsed = performance.now() - timerStart;
+    timerBadge.innerHTML = `<span class="spinner"></span> ${elapsed.toFixed(0)} ms`;
+  }, 50);
+}
+function stopTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  const elapsed = performance.now() - timerStart;
+  timerBadge.classList.remove('active');
+  timerBadge.innerHTML = `⚡ ${elapsed.toFixed(0)} ms`;
+}
+
+function buildRecord() {
+  const r = {
+    SegmentName: document.getElementById('segmentName').value.trim(),
+    SegmentDescription: document.getElementById('segmentDescription').value.trim() || null,
+    LongProfile: document.getElementById('longProfile').value.trim() || null,
+    CompanyId: document.getElementById('companyId').value.trim() || null,
+    AsOfDate: document.getElementById('asOfDate').value.trim() || null,
+    is_largest_share_segment: document.getElementById('isLargest').checked,
+  };
+  const rev = document.getElementById('revenue').value;
+  const tot = document.getElementById('totalRevenue').value;
+  const share = document.getElementById('revenueShare').value;
+  if (rev !== '') r.Revenue = Number(rev);
+  if (tot !== '') r.total_revenue_company_as_of = Number(tot);
+  if (share !== '') r.revenue_share = Number(share);
+  return r;
+}
+
+function getKnownIndustryCode() {
+  const v = document.getElementById('knownIndustry').value.trim();
+  if (!v) return null;
+  const m = v.match(/^(\d{8})/);
+  return m ? m[1] : v;
+}
+
+function renderConfidenceBars(candidates, kind) {
+  if (!candidates || !candidates.length) {
+    return '<div style="color: var(--muted); font-size: 12px; padding: 8px 0;">No candidates returned.</div>';
+  }
+  return candidates.map((c, i) => {
+    const code = kind === 'industry' ? c.industry_code : c.subindustry_code;
+    const name = kind === 'industry' ? (c.industry_name || INDUSTRY_INDEX.get(code) || '—') : c.subindustry_name;
+    const conf = Number(c.confidence ?? c.score ?? 0);
+    const width = Math.max(2, conf * 100).toFixed(2);
+    const isTop = i === 0;
+    const lowConf = isTop && kind === 'industry' && conf < 0.35;
+    return `
+      <div class="candidate-row ${isTop ? 'top' : ''}">
+        <div class="candidate-header">
+          <div class="candidate-label">
+            <span class="code">${esc(code)}</span>${esc(name)}
+          </div>
+          <div class="candidate-pct">${pct(conf)}</div>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill ${lowConf ? 'low' : kind}" style="width: ${width}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBreadcrumb(industry, subindustry) {
+  const parts = [];
+  if (industry) {
+    parts.push(`<span class="crumb industry"><span class="crumb-code">${esc(industry.industry_code)}</span>${esc(industry.industry_name || '—')}</span>`);
+  }
+  if (subindustry) {
+    parts.push(`<span class="crumb-sep">▸</span>`);
+    parts.push(`<span class="crumb subindustry"><span class="crumb-code">${esc(subindustry.subindustry_code)}</span>${esc(subindustry.subindustry_name || '—')}</span>`);
+  }
+  return parts.length ? `<div class="breadcrumb">${parts.join('')}</div>` : '';
+}
+
+function renderResult(row) {
+  const industries = row.industry_candidates || [];
+  const subindustries = row.subindustry_candidates || [];
+  const top1Conf = Number(row.top1_confidence ?? (industries[0]?.confidence) ?? 0);
+  const isAutoAccept = top1Conf >= 0.35 && industries.length > 0;
+  const badgeClass = isAutoAccept ? 'auto-accept' : 'analyst-review';
+  const badgeText = isAutoAccept ? `Auto-accept · ${pct(top1Conf)}` : `Analyst review · ${pct(top1Conf)}`;
+
+  const submeta = [];
+  if (row.company_id) submeta.push(`<span>${esc(row.company_id)}</span>`);
+  if (row.as_of_date) submeta.push(`<span>${esc(row.as_of_date)}</span>`);
+  if (row.revenue != null) submeta.push(`<span>Rev: $${Number(row.revenue).toLocaleString()}M</span>`);
+  if (row.revenue_share != null) submeta.push(`<span>Share: ${pct(row.revenue_share)}</span>`);
+  if (row.is_largest_share_segment) submeta.push(`<span>★ Largest segment</span>`);
+  if (row.known_industry_used) submeta.push(`<span>Known industry skip</span>`);
+
+  const industryBlock = industries.length ? `
+    <div class="candidates-section">
+      <div class="candidates-title industry">Top Industries</div>
+      ${renderConfidenceBars(industries, 'industry')}
+    </div>` : '';
+
+  const subBlock = subindustries.length ? `
+    <div class="candidates-section">
+      <div class="candidates-title subindustry">Top Sub-industries</div>
+      ${renderConfidenceBars(subindustries, 'subindustry')}
+    </div>` : '';
+
+  const bodyContent = industryBlock + subBlock;
+  const breadcrumbHtml = renderBreadcrumb(industries[0], subindustries[0]);
+
+  return `
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-meta">
+          <h3>${esc(row.segment_name || `Row ${row.row_id}`)}</h3>
+          <div class="submeta">${submeta.join('')}</div>
+        </div>
+        <div class="routing-badge ${badgeClass}">${badgeText}</div>
+      </div>
+      ${breadcrumbHtml}
+      <div class="result-body">${bodyContent}</div>
+    </div>
+  `;
+}
+
+function renderError(message) {
+  return `<div class="error-card"><strong>Prediction failed.</strong> ${esc(message)}</div>`;
+}
+
+async function runPrediction(endpoint, includeKnownIndustry) {
+  const segName = document.getElementById('segmentName').value.trim();
+  if (!segName) {
+    setStatus('Segment name is required.');
+    document.getElementById('segmentName').focus();
+    return;
   }
 
-  outputEl.innerHTML = html;
-  if (data.model) {
-    statusEl.textContent = `Done. Device: ${data.model.device}; Task 2 alpha: ${data.model.task2_alpha}`;
-  }
-}
-async function postJson(endpoint, payload) {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || JSON.stringify(data));
-  return data;
-}
-function buildManualPayload() {
-  return {
-    top_k: 5,
-    known_industry_code: parseIndustryCode(document.getElementById("knownIndustry").value),
-    records: [{
-      CompanyId: document.getElementById("companyId").value,
-      SegmentName: document.getElementById("segmentName").value,
-      SegmentDescription: document.getElementById("segmentDescription").value,
-      LongProfile: document.getElementById("longProfile").value,
-      revenue_share: document.getElementById("revenueShare").value,
-      is_largest_share_segment: document.getElementById("isLargestShare").checked
-    }]
-  };
-}
-async function runManual(endpoint, btn, label) {
-  outputEl.innerHTML = "";
-  statusEl.textContent = `${label}. First run may load large model weights...`;
-  const buttons = [manualBtn, manualIndustryBtn, manualSubindustryBtn];
+  const buttons = document.querySelectorAll('.btn');
   buttons.forEach(b => b.disabled = true);
+  setStatus('Predicting…');
+  startTimer();
+
+  const payload = {
+    top_k: 5,
+    records: [buildRecord()],
+  };
+  if (includeKnownIndustry) {
+    const code = getKnownIndustryCode();
+    if (code) payload.known_industry_code = code;
+  }
+
   try {
-    render(await postJson(endpoint, buildManualPayload()));
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    stopTimer();
+    if (!res.ok) throw new Error(data?.detail?.error || `HTTP ${res.status}`);
+    const results = data.results || [];
+    const container = document.getElementById('resultsContainer');
+    container.innerHTML = results.length
+      ? results.map(renderResult).join('')
+      : '<div class="empty"><div class="empty-icon">🔍</div><h2>No results</h2></div>';
+    setStatus(`Predicted ${results.length} row(s) successfully.`);
   } catch (err) {
-    outputEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
-    statusEl.textContent = "Prediction failed.";
+    stopTimer();
+    document.getElementById('resultsContainer').innerHTML = renderError(err.message);
+    setStatus('Prediction failed.');
   } finally {
     buttons.forEach(b => b.disabled = false);
   }
 }
-manualBtn.onclick = () => runManual("/api/predict", manualBtn, "Scoring industry and subindustry");
-manualIndustryBtn.onclick = () => runManual("/api/predict_industry", manualIndustryBtn, "Scoring industry only");
-manualSubindustryBtn.onclick = () => runManual("/api/predict_subindustry", manualSubindustryBtn, "Scoring subindustry only");
-csvBtn.onclick = async () => {
-  const file = document.getElementById("csvFile").files[0];
-  if (!file) {
-    outputEl.innerHTML = '<p class="error">Choose a CSV file first.</p>';
+
+document.getElementById('predictBoth').onclick = () => runPrediction('/api/predict', true);
+document.getElementById('predictIndustry').onclick = () => runPrediction('/api/predict_industry', false);
+document.getElementById('predictSub').onclick = () => runPrediction('/api/predict_subindustry', true);
+
+document.getElementById('predictCsv').onclick = async () => {
+  const fileInput = document.getElementById('csvFile');
+  if (!fileInput.files.length) {
+    setStatus('Pick a CSV file first.');
     return;
   }
-  outputEl.innerHTML = "";
-  statusEl.textContent = "Uploading CSV and scoring rows...";
-  csvBtn.disabled = true;
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('top_k', '5');
+  formData.append('task', 'both');
+  const known = getKnownIndustryCode();
+  if (known) formData.append('known_industry_code', known);
+
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(b => b.disabled = true);
+  setStatus('Processing CSV…');
+  startTimer();
+
   try {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("known_industry_code", parseIndustryCode(document.getElementById("csvKnownIndustry").value));
-    form.append("top_k", "5");
-    const res = await fetch("/api/predict_csv", { method: "POST", body: form });
+    const res = await fetch('/api/predict_csv', { method: 'POST', body: formData });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || JSON.stringify(data));
-    render(data);
+    stopTimer();
+    if (!res.ok) throw new Error(data?.detail?.error || `HTTP ${res.status}`);
+    const results = data.results || [];
+    document.getElementById('resultsContainer').innerHTML = results.length
+      ? results.map(renderResult).join('')
+      : '<div class="empty"><div class="empty-icon">🔍</div><h2>No rows in CSV</h2></div>';
+    setStatus(`Processed ${results.length} row(s) from CSV.`);
   } catch (err) {
-    outputEl.innerHTML = `<p class="error">${esc(err.message)}</p>`;
-    statusEl.textContent = "Prediction failed.";
+    stopTimer();
+    document.getElementById('resultsContainer').innerHTML = renderError(err.message);
+    setStatus('CSV processing failed.');
   } finally {
-    csvBtn.disabled = false;
+    buttons.forEach(b => b.disabled = false);
   }
 };
-loadIndustries().catch(err => {
-  outputEl.innerHTML = `<p class="error">Could not load industry list: ${esc(err.message)}</p>`;
-});
+
+fetch('/api/health')
+  .then(r => r.json())
+  .then(h => {
+    const pill = document.getElementById('serverStatus');
+    pill.innerHTML = `<span class="dot"></span>API online · ${h.device || 'cpu'}`;
+  })
+  .catch(() => {
+    const pill = document.getElementById('serverStatus');
+    pill.style.background = 'var(--danger-bg)';
+    pill.style.color = 'var(--danger)';
+    pill.innerHTML = '<span class="dot" style="background:var(--danger);"></span>API offline';
+  });
 </script>
 </body>
 </html>
