@@ -310,9 +310,6 @@ depaul-morningstar-capstone/
 | **Saumyaa Kannan** | Project Manager | Timeline governance, stakeholder alignment, proposal |
 | **Dev Gauravbhai Patel** | Visualization Lead | Tableau dashboards, Gantt chart, presentation design |
 
-> Repository and version control maintained by Meet Patel.
-> Task 2 model and browser UI originally developed by Anas Syed.
-
 ---
 
 ## 📚 References
