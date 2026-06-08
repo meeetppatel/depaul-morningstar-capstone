@@ -305,8 +305,8 @@ depaul-morningstar-capstone/
 | Member | Role | Key Contributions |
 |---|---|---|
 | **Meet Patel** | Technical Co-Lead — Evaluation & API | FLANG-BERT champion model, FastAPI integration, GitHub version control |
-| **Hanane Nekkaz** | Technical Co-Lead — Modeling | Six-stream HGBT ensemble, Task 2 cross-encoder pipeline, model benchmarking |
-| **Anas Syed** | Business Research Lead | GECS taxonomy research, serving app UI ([see repo](https://github.com/anane097-coder/Company-GECS-Activity-Predictor)) |
+| **Hanane Nekkaz** | Technical Co-Lead — Modeling | Six-stream HGBT ensemble, Task 2 cross-encoder pipeline, model benchmarking ([see repo](https://github.com/anane097-coder/Company-GECS-Activity-Predictor))|
+| **Anas Syed** | Business Research Lead | GECS taxonomy research, serving app UI  |
 | **Saumyaa Kannan** | Project Manager | Timeline governance, stakeholder alignment, proposal |
 | **Dev Gauravbhai Patel** | Visualization Lead | Tableau dashboards, Gantt chart, presentation design |
 
