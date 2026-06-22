@@ -639,11 +639,26 @@ function renderConfidenceBars(candidates, kind) {
   if (!candidates || !candidates.length) {
     return '<div style="color: var(--muted); font-size: 12px; padding: 8px 0;">No candidates returned.</div>';
   }
+
+  // For subindustries use min-max scaling on combined_score for readable bars
+  // For industries keep raw softmax confidence (meaningful probability)
+  let getWidth, getLabel;
+  if (kind === 'subindustry') {
+    const scores = candidates.map(c => Number(c.combined_score ?? c.confidence ?? 0));
+    const minS = Math.min(...scores);
+    const maxS = Math.max(...scores);
+    const range = maxS - minS || 1;
+    getWidth = (c) => Math.max(2, ((Number(c.combined_score ?? c.confidence ?? 0) - minS) / range * 100)).toFixed(1);
+    getLabel = (c) => ((Number(c.combined_score ?? c.confidence ?? 0) - minS) / range * 100).toFixed(1) + '%';
+  } else {
+    getWidth = (c) => Math.max(2, Number(c.confidence ?? c.score ?? 0) * 100).toFixed(2);
+    getLabel = (c) => pct(Number(c.confidence ?? c.score ?? 0));
+  }
+
   return candidates.map((c, i) => {
     const code = kind === 'industry' ? c.industry_code : c.subindustry_code;
     const name = kind === 'industry' ? (c.industry_name || INDUSTRY_INDEX.get(code) || '—') : c.subindustry_name;
     const conf = Number(c.confidence ?? c.score ?? 0);
-    const width = Math.max(2, conf * 100).toFixed(2);
     const isTop = i === 0;
     const lowConf = isTop && kind === 'industry' && conf < 0.35;
     return `
@@ -652,10 +667,10 @@ function renderConfidenceBars(candidates, kind) {
           <div class="candidate-label">
             <span class="code">${esc(code)}</span>${esc(name)}
           </div>
-          <div class="candidate-pct">${pct(conf)}</div>
+          <div class="candidate-pct">${getLabel(c)}</div>
         </div>
         <div class="bar-track">
-          <div class="bar-fill ${lowConf ? 'low' : kind}" style="width: ${width}%"></div>
+          <div class="bar-fill ${lowConf ? 'low' : kind}" style="width: ${getWidth(c)}%"></div>
         </div>
       </div>
     `;
