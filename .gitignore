@@ -30,3 +30,32 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+# environments
+.venv/
+.venv-1/
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# mac junk
+.DS_Store
+
+# model weights
+weights/
+*.pt
+*.pkl
+model_artifacts/
+
+# jupyter
+.ipynb_checkpoints/
+*.html
+
+# secrets
+.env
+api/
+
+# large data
+*.npz
+*.xlsx
