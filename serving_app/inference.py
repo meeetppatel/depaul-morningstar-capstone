@@ -327,7 +327,7 @@ def compute_numeric_features(frame: pd.DataFrame, scaler) -> np.ndarray:
     return feats[NUMERIC_COLS].values.astype(np.float32)
 
 
-def build_task1_text(frame: pd.DataFrame, sibling_words: int = 25, lp_words: int = 60) -> list[str]:
+def build_task1_text(frame: pd.DataFrame, sibling_words: int = 25, lp_words: int = 100) -> list[str]:
     """Build the text input for FLANG-BERT, matching training format.
 
     Format:
@@ -368,7 +368,7 @@ def build_task1_text(frame: pd.DataFrame, sibling_words: int = 25, lp_words: int
                     continue
                 sib = df.loc[sib_idx]
                 rev_pct = round(float(sib.get("revenue_share", 0) or 0) * 100, 1)
-                sib_desc = sib["_seg_desc"] if sib["_seg_desc"] else sib["_seg_name"]
+                sib_desc = sib["_seg_desc"]
                 sib_short = " ".join(sib_desc.split()[:sibling_words])
                 if sib_short:
                     sib_parts.append(f"[SEG {rev_pct}%] {sib_short}")
@@ -560,7 +560,7 @@ class PredictionService:
         self,
         package_root: Path | None = None,
         local_files_only: bool | None = None,
-        alpha: float = 15.0,
+        alpha: float = 7.5,
     ):
         self.paths = ModelPaths.discover(package_root)
         self.local_files_only = bool(
@@ -711,9 +711,7 @@ class PredictionService:
         results = []
         for i in range(len(df)):
             row = df.iloc[i]
-            seg_text = f"{row['SegmentName']}. {row['SegmentDescription']}".strip(". ").strip()
-            if not seg_text:
-                seg_text = row.get("LongProfile", "")[:300]
+            seg_text = f"[SEGMENT_NAME] {row['SegmentName']} [SEGMENT_DESCRIPTION] {row['SegmentDescription']}".strip()
 
             parents = parent_candidates_per_row[i]
             pair_texts, leaf_codes, parent_priors = [], [], []

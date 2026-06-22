@@ -182,6 +182,11 @@
   .btn-tertiary { background: var(--accent-3); }
   .btn-tertiary:hover { background: #6d28d9; transform: translateY(-1px); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-reset {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-weight: 500;
+  }
+  .btn-reset:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
   .btn-outline {
     background: transparent; border: 1px solid var(--border); color: var(--ink-2);
   }
@@ -408,7 +413,7 @@
       </div>
 
       <div class="field">
-        <label for="revenue">Revenue ($M)</label>
+        <label for="revenue">Revenue</label>
         <input id="revenue" type="number" step="any" placeholder="Optional" />
       </div>
 
@@ -437,6 +442,7 @@
         <button class="btn btn-primary" id="predictBoth">Predict Industry + Sub-industry</button>
         <button class="btn btn-secondary" id="predictIndustry">Industry Only</button>
         <button class="btn btn-tertiary" id="predictSub">Sub-industry Only</button>
+        <button class="btn btn-reset" id="resetBtn">↺&nbsp; Clear all fields</button>
       </div>
 
       <hr class="divider"/>
@@ -679,7 +685,7 @@ function renderResult(row) {
   const submeta = [];
   if (row.company_id) submeta.push(`<span>${esc(row.company_id)}</span>`);
   if (row.as_of_date) submeta.push(`<span>${esc(row.as_of_date)}</span>`);
-  if (row.revenue != null) submeta.push(`<span>Rev: $${Number(row.revenue).toLocaleString()}M</span>`);
+  if (row.revenue != null) submeta.push(`<span>Rev: ${Number(row.revenue).toLocaleString()}</span>`);
   if (row.revenue_share != null) submeta.push(`<span>Share: ${pct(row.revenue_share)}</span>`);
   if (row.is_largest_share_segment) submeta.push(`<span>★ Largest segment</span>`);
   if (row.known_industry_used) submeta.push(`<span>Known industry skip</span>`);
@@ -764,7 +770,25 @@ async function runPrediction(endpoint, includeKnownIndustry) {
   }
 }
 
-document.getElementById('predictBoth').onclick = () => runPrediction('/api/predict', true);
+function resetForm() {
+  ["segmentName","segmentDescription","longProfile","companyId","revenue","totalRevenue","revenueShare","knownIndustry","csvFile"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  document.getElementById("isLargest").checked = false;
+  document.getElementById("resultsContainer").innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">🔮</div>
+      <h2>No predictions yet</h2>
+      <p>Pick a sample above or fill in segment details, then click predict.</p>
+    </div>`;
+  document.getElementById("timerBadge").innerHTML = "—";
+  document.getElementById("timerBadge").classList.remove("active");
+  setStatus("Ready. Fill a form or upload a CSV to begin.");
+}
+
+document.getElementById("resetBtn").onclick = resetForm;
+document.getElementById("predictBoth").onclick = () => runPrediction('/api/predict', true);
 document.getElementById('predictIndustry').onclick = () => runPrediction('/api/predict_industry', false);
 document.getElementById('predictSub').onclick = () => runPrediction('/api/predict_subindustry', true);
 
