@@ -10,7 +10,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org)
 [![HuggingFace](https://img.shields.io/badge/🤗_Transformers-4.40-FFD21E?style=flat)](https://huggingface.co)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
 
 </div>
 
@@ -376,7 +375,7 @@ Four bugs were identified and patched between v10 training and the production se
 
 | Member | Role | Key Contributions |
 |---|---|---|
-| **Meet Patel** | Technical Co-Lead — Evaluation & API | FLANG-BERT v11 champion model, inference pipeline, FastAPI integration, GitHub version control |
+| **Meet Patel** | Analytics & Evaluation Lead | FLANG-BERT v11 champion model, inference pipeline, FastAPI integration, GitHub version control |
 | **Hanane Nekkaz** | Technical Co-Lead — Modeling | Six-stream HGBT ensemble, Task 2 cross-encoder pipeline, model benchmarking ([see repo](https://github.com/anane097-coder/Company-GECS-Activity-Predictor)) |
 | **Anas Syed** | Business Research Lead | GECS taxonomy research, serving app UI |
 | **Saumyaa Kannan** | Project Manager | Timeline governance, stakeholder alignment, proposal |
